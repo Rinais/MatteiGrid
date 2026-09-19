@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>MatteiGrid.Api</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MatteiGrid.Shared.Kernel\MatteiGrid.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Shared.Infrastructure\MatteiGrid.Shared.Infrastructure.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Modules.Identity\MatteiGrid.Modules.Identity.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Modules.Clinic\MatteiGrid.Modules.Clinic.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Modules.Patients\MatteiGrid.Modules.Patients.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Modules.Appointments\MatteiGrid.Modules.Appointments.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Modules.Clinical\MatteiGrid.Modules.Clinical.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Modules.MateriaMedica\MatteiGrid.Modules.MateriaMedica.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Modules.Prescriptions\MatteiGrid.Modules.Prescriptions.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Modules.Laboratory\MatteiGrid.Modules.Laboratory.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Modules.Inventory\MatteiGrid.Modules.Inventory.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Modules.Billing\MatteiGrid.Modules.Billing.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Modules.Notifications\MatteiGrid.Modules.Notifications.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Modules.Reports\MatteiGrid.Modules.Reports.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Modules.Administration\MatteiGrid.Modules.Administration.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.11" />
+  </ItemGroup>
+</Project>

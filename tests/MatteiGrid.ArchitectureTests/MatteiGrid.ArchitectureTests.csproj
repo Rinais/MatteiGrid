@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\MatteiGrid.Shared.Kernel\MatteiGrid.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\src\MatteiGrid.Shared.Infrastructure\MatteiGrid.Shared.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\MatteiGrid.Api\MatteiGrid.Api.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="NetArchTest.Rules" Version="*" />
+    <PackageReference Include="xunit" Version="*" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="*" />
+    <PackageReference Include="FluentAssertions" Version="*" />
+  </ItemGroup>
+</Project>

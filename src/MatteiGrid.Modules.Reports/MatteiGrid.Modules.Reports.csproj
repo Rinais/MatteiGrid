@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>MatteiGrid.Modules.Reports</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MatteiGrid.Shared.Kernel\MatteiGrid.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\MatteiGrid.Shared.Infrastructure\MatteiGrid.Shared.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

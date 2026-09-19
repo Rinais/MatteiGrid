@@ -1,0 +1,152 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A1000001-0000-0000-0000-000000000001}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{A1000002-0000-0000-0000-000000000002}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Shared.Kernel", "src\MatteiGrid.Shared.Kernel\MatteiGrid.Shared.Kernel.csproj", "{B1000001-0000-0000-0000-000000000001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Shared.Infrastructure", "src\MatteiGrid.Shared.Infrastructure\MatteiGrid.Shared.Infrastructure.csproj", "{B1000002-0000-0000-0000-000000000002}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Api", "src\MatteiGrid.Api\MatteiGrid.Api.csproj", "{B1000003-0000-0000-0000-000000000003}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Modules.Identity", "src\MatteiGrid.Modules.Identity\MatteiGrid.Modules.Identity.csproj", "{B1000010-0000-0000-0000-000000000010}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Modules.Clinic", "src\MatteiGrid.Modules.Clinic\MatteiGrid.Modules.Clinic.csproj", "{B1000011-0000-0000-0000-000000000011}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Modules.Patients", "src\MatteiGrid.Modules.Patients\MatteiGrid.Modules.Patients.csproj", "{B1000012-0000-0000-0000-000000000012}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Modules.Appointments", "src\MatteiGrid.Modules.Appointments\MatteiGrid.Modules.Appointments.csproj", "{B1000013-0000-0000-0000-000000000013}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Modules.Clinical", "src\MatteiGrid.Modules.Clinical\MatteiGrid.Modules.Clinical.csproj", "{B1000014-0000-0000-0000-000000000014}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Modules.MateriaMedica", "src\MatteiGrid.Modules.MateriaMedica\MatteiGrid.Modules.MateriaMedica.csproj", "{B1000015-0000-0000-0000-000000000015}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Modules.Prescriptions", "src\MatteiGrid.Modules.Prescriptions\MatteiGrid.Modules.Prescriptions.csproj", "{B1000016-0000-0000-0000-000000000016}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Modules.Laboratory", "src\MatteiGrid.Modules.Laboratory\MatteiGrid.Modules.Laboratory.csproj", "{B1000017-0000-0000-0000-000000000017}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Modules.Inventory", "src\MatteiGrid.Modules.Inventory\MatteiGrid.Modules.Inventory.csproj", "{B1000018-0000-0000-0000-000000000018}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Modules.Billing", "src\MatteiGrid.Modules.Billing\MatteiGrid.Modules.Billing.csproj", "{B1000019-0000-0000-0000-000000000019}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Modules.Notifications", "src\MatteiGrid.Modules.Notifications\MatteiGrid.Modules.Notifications.csproj", "{B1000020-0000-0000-0000-000000000020}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Modules.Reports", "src\MatteiGrid.Modules.Reports\MatteiGrid.Modules.Reports.csproj", "{B1000021-0000-0000-0000-000000000021}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.Modules.Administration", "src\MatteiGrid.Modules.Administration\MatteiGrid.Modules.Administration.csproj", "{B1000022-0000-0000-0000-000000000022}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.ArchitectureTests", "tests\MatteiGrid.ArchitectureTests\MatteiGrid.ArchitectureTests.csproj", "{C1000001-0000-0000-0000-000000000001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.IntegrationTests", "tests\MatteiGrid.IntegrationTests\MatteiGrid.IntegrationTests.csproj", "{C1000002-0000-0000-0000-000000000002}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatteiGrid.UnitTests", "tests\MatteiGrid.UnitTests\MatteiGrid.UnitTests.csproj", "{C1000003-0000-0000-0000-000000000003}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B1000001-0000-0000-0000-000000000001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000001-0000-0000-0000-000000000001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000001-0000-0000-0000-000000000001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000001-0000-0000-0000-000000000001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000002-0000-0000-0000-000000000002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000002-0000-0000-0000-000000000002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000002-0000-0000-0000-000000000002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000002-0000-0000-0000-000000000002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000003-0000-0000-0000-000000000003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000003-0000-0000-0000-000000000003}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000003-0000-0000-0000-000000000003}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000003-0000-0000-0000-000000000003}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000010-0000-0000-0000-000000000010}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000010-0000-0000-0000-000000000010}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000010-0000-0000-0000-000000000010}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000010-0000-0000-0000-000000000010}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000011-0000-0000-0000-000000000011}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000011-0000-0000-0000-000000000011}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000011-0000-0000-0000-000000000011}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000011-0000-0000-0000-000000000011}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000012-0000-0000-0000-000000000012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000012-0000-0000-0000-000000000012}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000012-0000-0000-0000-000000000012}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000012-0000-0000-0000-000000000012}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000013-0000-0000-0000-000000000013}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000013-0000-0000-0000-000000000013}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000013-0000-0000-0000-000000000013}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000013-0000-0000-0000-000000000013}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000014-0000-0000-0000-000000000014}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000014-0000-0000-0000-000000000014}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000014-0000-0000-0000-000000000014}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000014-0000-0000-0000-000000000014}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000015-0000-0000-0000-000000000015}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000015-0000-0000-0000-000000000015}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000015-0000-0000-0000-000000000015}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000015-0000-0000-0000-000000000015}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000016-0000-0000-0000-000000000016}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000016-0000-0000-0000-000000000016}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000016-0000-0000-0000-000000000016}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000016-0000-0000-0000-000000000016}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000017-0000-0000-0000-000000000017}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000017-0000-0000-0000-000000000017}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000017-0000-0000-0000-000000000017}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000017-0000-0000-0000-000000000017}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000018-0000-0000-0000-000000000018}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000018-0000-0000-0000-000000000018}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000018-0000-0000-0000-000000000018}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000018-0000-0000-0000-000000000018}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000019-0000-0000-0000-000000000019}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000019-0000-0000-0000-000000000019}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000019-0000-0000-0000-000000000019}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000019-0000-0000-0000-000000000019}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000020-0000-0000-0000-000000000020}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000020-0000-0000-0000-000000000020}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000020-0000-0000-0000-000000000020}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000020-0000-0000-0000-000000000020}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000021-0000-0000-0000-000000000021}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000021-0000-0000-0000-000000000021}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000021-0000-0000-0000-000000000021}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000021-0000-0000-0000-000000000021}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1000022-0000-0000-0000-000000000022}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1000022-0000-0000-0000-000000000022}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1000022-0000-0000-0000-000000000022}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1000022-0000-0000-0000-000000000022}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1000001-0000-0000-0000-000000000001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1000001-0000-0000-0000-000000000001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1000001-0000-0000-0000-000000000001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1000001-0000-0000-0000-000000000001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1000002-0000-0000-0000-000000000002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1000002-0000-0000-0000-000000000002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1000002-0000-0000-0000-000000000002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1000002-0000-0000-0000-000000000002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1000003-0000-0000-0000-000000000003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1000003-0000-0000-0000-000000000003}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1000003-0000-0000-0000-000000000003}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1000003-0000-0000-0000-000000000003}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B1000001-0000-0000-0000-000000000001} = {A1000001-0000-0000-0000-000000000001}
+		{B1000002-0000-0000-0000-000000000002} = {A1000001-0000-0000-0000-000000000001}
+		{B1000003-0000-0000-0000-000000000003} = {A1000001-0000-0000-0000-000000000001}
+		{B1000010-0000-0000-0000-000000000010} = {A1000001-0000-0000-0000-000000000001}
+		{B1000011-0000-0000-0000-000000000011} = {A1000001-0000-0000-0000-000000000001}
+		{B1000012-0000-0000-0000-000000000012} = {A1000001-0000-0000-0000-000000000001}
+		{B1000013-0000-0000-0000-000000000013} = {A1000001-0000-0000-0000-000000000001}
+		{B1000014-0000-0000-0000-000000000014} = {A1000001-0000-0000-0000-000000000001}
+		{B1000015-0000-0000-0000-000000000015} = {A1000001-0000-0000-0000-000000000001}
+		{B1000016-0000-0000-0000-000000000016} = {A1000001-0000-0000-0000-000000000001}
+		{B1000017-0000-0000-0000-000000000017} = {A1000001-0000-0000-0000-000000000001}
+		{B1000018-0000-0000-0000-000000000018} = {A1000001-0000-0000-0000-000000000001}
+		{B1000019-0000-0000-0000-000000000019} = {A1000001-0000-0000-0000-000000000001}
+		{B1000020-0000-0000-0000-000000000020} = {A1000001-0000-0000-0000-000000000001}
+		{B1000021-0000-0000-0000-000000000021} = {A1000001-0000-0000-0000-000000000001}
+		{B1000022-0000-0000-0000-000000000022} = {A1000001-0000-0000-0000-000000000001}
+		{C1000001-0000-0000-0000-000000000001} = {A1000002-0000-0000-0000-000000000002}
+		{C1000002-0000-0000-0000-000000000002} = {A1000002-0000-0000-0000-000000000002}
+		{C1000003-0000-0000-0000-000000000003} = {A1000002-0000-0000-0000-000000000002}
+	EndGlobalSection
+EndGlobal

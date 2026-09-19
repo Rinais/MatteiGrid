@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>MatteiGrid.Shared.Kernel</RootNamespace>
+    <AssemblyName>MatteiGrid.Shared.Kernel</AssemblyName>
+  </PropertyGroup>
+</Project>
