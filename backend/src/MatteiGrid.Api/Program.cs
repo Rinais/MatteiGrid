@@ -120,11 +120,12 @@ public class Program
 
         var app = builder.Build();
 
-        if (app.Environment.IsDevelopment())
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
         {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mattei Grid API v2.4");
+            c.RoutePrefix = "swagger";
+        });
 
         app.UseCors();
         app.UseAuthentication();
@@ -149,6 +150,31 @@ public class Program
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             MatteiGrid.Api.Data.DatabaseSeeder.SeedAsync(db).GetAwaiter().GetResult();
         }
+
+        // Automatically launch default browser to Swagger on startup in Development
+        app.Lifetime.ApplicationStarted.Register(() =>
+        {
+            if (app.Environment.IsDevelopment())
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await Task.Delay(600);
+                        var swaggerUrl = "http://localhost:5000/swagger";
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = swaggerUrl,
+                            UseShellExecute = true
+                        });
+                    }
+                    catch
+                    {
+                        // Fallback silently if running in headless/container environment
+                    }
+                });
+            }
+        });
 
         app.Run();
     }
