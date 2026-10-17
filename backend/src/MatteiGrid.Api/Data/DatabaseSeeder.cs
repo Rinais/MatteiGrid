@@ -1,8 +1,11 @@
 using MatteiGrid.Modules.Clinic.Domain;
+using MatteiGrid.Modules.Identity.Domain;
 using MatteiGrid.Modules.Inventory.Domain;
 using MatteiGrid.Modules.MateriaMedica.Domain;
 using MatteiGrid.Modules.Prescriptions.Domain;
 using MatteiGrid.Shared.Infrastructure.Persistence;
+using MatteiGrid.Shared.Kernel;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace MatteiGrid.Api.Data;
@@ -12,8 +15,70 @@ public static class DatabaseSeeder
     public static readonly Guid DefaultClinicId = Guid.Parse("00000000-0000-0000-0000-000000000001");
     public static readonly Guid DefaultDoctorId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-    public static async Task SeedAsync(AppDbContext db)
+    public static async Task SeedAsync(
+        AppDbContext db,
+        UserManager<ApplicationUser>? userManager = null,
+        RoleManager<IdentityRole<Guid>>? roleManager = null)
     {
+        // 0. Identity Roles & Demo Users (AUTH-08: Seeded ONLY in Development mode)
+        if (roleManager != null && userManager != null)
+        {
+            var roles = new[] { Roles.Doctor, Roles.Administrator, Roles.Receptionist, Roles.LabTechnician, Roles.SuperAdmin };
+            foreach (var role in roles)
+            {
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    await roleManager.CreateAsync(new IdentityRole<Guid>(role));
+                }
+            }
+
+            var demoUsers = new (string Email, string Name, string Role)[]
+            {
+                ("doctor@clinic.com", "Dr. Cesare Mattei", Roles.Doctor),
+                ("admin@clinic.com", "Clinic Administrator", Roles.Administrator),
+                ("reception@clinic.com", "Anita Sharma (Receptionist)", Roles.Receptionist),
+                ("lab@clinic.com", "Rahul Verma (Lab Tech)", Roles.LabTechnician),
+                ("superadmin@matteigrid.com", "Platform SuperAdmin", Roles.SuperAdmin)
+            };
+
+            foreach (var (email, name, role) in demoUsers)
+            {
+                var user = await userManager.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    user = new ApplicationUser
+                    {
+                        Id = Guid.NewGuid(),
+                        UserName = email,
+                        Email = email,
+                        EmailConfirmed = true,
+                        FullName = name,
+                        ClinicId = DefaultClinicId,
+                        IsActive = true
+                    };
+                    var createResult = await userManager.CreateAsync(user, "Pass123!");
+                    if (createResult.Succeeded)
+                    {
+                        await userManager.AddToRoleAsync(user, role);
+                    }
+                }
+
+                // Ensure UserClinicMembership
+                if (!await db.Set<UserClinicMembership>().AnyAsync(m => m.UserId == user.Id && m.ClinicId == DefaultClinicId))
+                {
+                    db.Set<UserClinicMembership>().Add(new UserClinicMembership
+                    {
+                        UserId = user.Id,
+                        ClinicId = DefaultClinicId,
+                        ClinicName = "Mattei Grid Central Clinic",
+                        Role = role,
+                        IsActive = true
+                    });
+                }
+            }
+            await db.SaveChangesAsync();
+        }
+
         // 1. Clinic
         if (!await db.Set<Clinic>().AnyAsync(c => c.Id == DefaultClinicId))
         {

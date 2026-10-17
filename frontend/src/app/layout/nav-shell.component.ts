@@ -36,6 +36,7 @@ import { SignalRService } from '../core/signalr.service';
             <option value="Receptionist">Receptionist (Bookings + Billing)</option>
             <option value="Lab Technician">Lab Technician (Queue)</option>
             <option value="Administrator">Administrator (Audit + Admin)</option>
+            <option value="SuperAdmin">SuperAdmin (Platform Multi-Tenant)</option>
           </select>
         </div>
 
@@ -43,6 +44,11 @@ import { SignalRService } from '../core/signalr.service';
           <span class="user-avatar" aria-hidden="true">{{ auth.currentUser()?.fullName?.charAt(0) || 'U' }}</span>
           <span class="user-name">{{ auth.currentUser()?.fullName }}</span>
         </div>
+
+        <button type="button" class="sign-out-btn" (click)="auth.logout()" title="Sign out of current workspace">
+          <span aria-hidden="true">🚪</span>
+          <span>Sign Out</span>
+        </button>
       </div>
     </header>
 
@@ -182,6 +188,26 @@ import { SignalRService } from '../core/signalr.service';
       align-items: center;
       justify-content: center;
       font-weight: bold;
+    }
+    .sign-out-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.775rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+    }
+    .sign-out-btn:hover {
+      background: rgba(239, 68, 68, 0.28);
+      border-color: #ef4444;
+      color: #fee2e2;
+      transform: translateY(-1px);
     }
     .event-banner {
       background: #1e3a8a;

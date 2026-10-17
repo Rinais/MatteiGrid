@@ -3,14 +3,24 @@ export interface User {
   email: string;
   fullName: string;
   role: string;
+  clinicId?: string;
   permissions: string[];
 }
 
+export interface ClinicMembership {
+  clinicId: string;
+  clinicName: string;
+  role: string;
+}
+
 export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: string;
-  user: User;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: string;
+  user?: User;
+  requiresTenantSelection?: boolean;
+  tenantSelectionToken?: string;
+  availableClinics?: ClinicMembership[];
 }
 
 export interface Patient {

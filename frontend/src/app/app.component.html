@@ -1,4 +1,6 @@
-<app-nav-shell></app-nav-shell>
+@if (auth.currentUser()) {
+  <app-nav-shell></app-nav-shell>
+}
 <main id="main-content" class="app-main-viewport" role="main">
   <router-outlet></router-outlet>
 </main>

@@ -4,17 +4,21 @@ using MatteiGrid.Shared.Infrastructure.Persistence;
 using MatteiGrid.Shared.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
 
+using Microsoft.Extensions.Logging;
+
 namespace MatteiGrid.Modules.Patients.Services;
 
 public class PatientService : IPatientService
 {
     private readonly AppDbContext _dbContext;
     private readonly ICurrentTenantContext _tenantContext;
+    private readonly ILogger<PatientService>? _logger;
 
-    public PatientService(AppDbContext dbContext, ICurrentTenantContext tenantContext)
+    public PatientService(AppDbContext dbContext, ICurrentTenantContext tenantContext, ILogger<PatientService>? logger = null)
     {
         _dbContext = dbContext;
         _tenantContext = tenantContext;
+        _logger = logger;
     }
 
     public async Task<DuplicatePatientWarning> CheckDuplicateAsync(string name, string phone, DateOnly dob, CancellationToken ct = default)
@@ -31,6 +35,9 @@ public class PatientService : IPatientService
             return new DuplicatePatientWarning(false, null, Array.Empty<PatientDto>());
 
         var matches = candidates.Select(MapDto).ToList();
+        _logger?.LogWarning("[WARN] [DUPLICATE_CHECK] Potential duplicate patient match detected: Found {Count} existing patient(s) matching Phone '{Phone}' or Name '{Name}' and DOB '{DOB}' in Clinic {ClinicId}",
+            matches.Count, safePhone, safeName, dob, _tenantContext.ClinicId);
+
         return new DuplicatePatientWarning(true, $"Found {matches.Count} potential matching existing patient(s).", matches);
     }
 
@@ -40,6 +47,11 @@ public class PatientService : IPatientService
         var safePhone = (request.Phone ?? string.Empty).Trim();
 
         var warning = await CheckDuplicateAsync(safeName, safePhone, request.DOB, ct);
+        if (warning.HasPotentialDuplicate)
+        {
+            _logger?.LogWarning("[WARN] [PATIENT_REGISTRATION] Proceeding to register patient '{Name}' with {Count} potential duplicate(s) flagged",
+                safeName, warning.Matches.Count);
+        }
 
         var patient = new Patient
         {

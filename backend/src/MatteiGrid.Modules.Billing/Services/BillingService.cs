@@ -4,6 +4,7 @@ using MatteiGrid.Modules.Billing.Domain;
 using MatteiGrid.Shared.Infrastructure.Persistence;
 using MatteiGrid.Shared.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace MatteiGrid.Modules.Billing.Services;
 
@@ -11,11 +12,13 @@ public class BillingService : IBillingService
 {
     private readonly AppDbContext _dbContext;
     private readonly ICurrentTenantContext _tenantContext;
+    private readonly ILogger<BillingService>? _logger;
 
-    public BillingService(AppDbContext dbContext, ICurrentTenantContext tenantContext)
+    public BillingService(AppDbContext dbContext, ICurrentTenantContext tenantContext, ILogger<BillingService>? logger = null)
     {
         _dbContext = dbContext;
         _tenantContext = tenantContext;
+        _logger = logger;
     }
 
     public async Task<InvoiceDto> CreateInvoiceAsync(CreateInvoiceRequest request, CancellationToken ct = default)
@@ -106,11 +109,18 @@ public class BillingService : IBillingService
             ?? throw new InvalidOperationException("Payment record not found.");
 
         if (payment.Status != PaymentStatus.Confirmed)
+        {
+            _logger?.LogWarning("[WARN] [BILLING_REFUND] Invalid refund attempt: Payment {PaymentId} status is {Status}, must be Confirmed", payment.Id, payment.Status);
             throw new InvalidOperationException("Only confirmed payments can be refunded.");
+        }
 
         var totalRefundedOnPayment = payment.Refunds.Where(r => r.Status == RefundStatus.Processed).Sum(r => r.Amount);
         if (request.Amount > (payment.Amount - totalRefundedOnPayment))
+        {
+            _logger?.LogWarning("[WARN] [BILLING_REFUND] Refund amount {RequestedAmount} exceeds refundable balance {RemainingBalance} on Payment {PaymentId} for Invoice {InvoiceId}",
+                request.Amount, (payment.Amount - totalRefundedOnPayment), payment.Id, invoice.Id);
             throw new InvalidOperationException("Refund amount exceeds remaining refundable payment balance.");
+        }
 
         var refund = new Refund
         {

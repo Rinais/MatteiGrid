@@ -15,7 +15,7 @@ import { Patient, DuplicatePatientWarning } from '../../core/models';
           <h1 class="page-title">Patient Registry</h1>
           <p class="page-subtitle">Centralized medical records and DPDP-compliant consent tracking</p>
         </div>
-        <button class="btn btn-primary" (click)="showRegisterModal = true">+ Register New Patient</button>
+        <button class="btn btn-primary" (click)="openRegisterModal()">New ? Click me YO</button>
       </div>
 
       <!-- Search Bar -->
@@ -79,7 +79,7 @@ import { Patient, DuplicatePatientWarning } from '../../core/models';
         <div class="modal-dialog">
           <div class="modal-header">
             <h3>Register New Patient</h3>
-            <button class="modal-close" (click)="showRegisterModal = false">×</button>
+            <button class="modal-close" (click)="closeRegisterModal()">×</button>
           </div>
           <div class="modal-body">
             <!-- Advisory Duplicate Match Warning Banner -->
@@ -101,7 +101,23 @@ import { Patient, DuplicatePatientWarning } from '../../core/models';
 
             <div class="form-group">
               <label>Phone Number *</label>
-              <input type="text" [(ngModel)]="form.phone" class="form-control" placeholder="e.g. +919876543210" />
+              <input
+                type="tel"
+                inputmode="numeric"
+                autocomplete="tel"
+                maxlength="10"
+                [value]="form.phone"
+                (input)="onPhoneInput($event)"
+                (keydown)="onPhoneKeyDown($event)"
+                (blur)="phoneTouched = true"
+                class="form-control"
+                [class.input-error]="phoneTouched && !isPhoneValid()"
+                placeholder="e.g. 9876543210"
+              />
+              <div class="error-feedback" *ngIf="phoneTouched && !isPhoneValid()">
+                <span *ngIf="!form.phone">Phone number is required.</span>
+                <span *ngIf="form.phone">Please enter a valid 10-digit phone number.</span>
+              </div>
             </div>
 
             <div class="form-group">
@@ -117,8 +133,8 @@ import { Patient, DuplicatePatientWarning } from '../../core/models';
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-outline" (click)="showRegisterModal = false">Cancel</button>
-            <button class="btn btn-primary" (click)="submitRegistration()" [disabled]="!form.name || !form.phone || !form.dob">
+            <button class="btn btn-outline" (click)="closeRegisterModal()">Cancel</button>
+            <button class="btn btn-primary" (click)="submitRegistration()" [disabled]="!form.name || !isPhoneValid() || !form.dob">
               Confirm Registration
             </button>
           </div>
@@ -220,6 +236,8 @@ import { Patient, DuplicatePatientWarning } from '../../core/models';
     .form-group { margin-bottom: 1rem; }
     .form-group label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.35rem; }
     .form-control { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; }
+    .input-error { border-color: #ef4444 !important; background-color: #fef2f2; }
+    .error-feedback { color: #dc2626; font-size: 0.75rem; margin-top: 0.25rem; }
     .checkbox-group label { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.8rem; color: #4b5563; }
     .warning-banner {
       background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px;
@@ -238,6 +256,7 @@ export class PatientListComponent implements OnInit {
   showRegisterModal = false;
   erasingPatient: Patient | null = null;
   duplicateWarning = signal<DuplicatePatientWarning | null>(null);
+  phoneTouched = false;
 
   form = {
     name: '',
@@ -250,6 +269,16 @@ export class PatientListComponent implements OnInit {
     this.loadPatients();
   }
 
+  openRegisterModal() {
+    this.resetForm();
+    this.showRegisterModal = true;
+  }
+
+  closeRegisterModal() {
+    this.showRegisterModal = false;
+    this.resetForm();
+  }
+
   loadPatients() {
     this.api.getPatients(this.searchQuery).subscribe(p => this.patients.set(p));
   }
@@ -258,18 +287,63 @@ export class PatientListComponent implements OnInit {
     this.loadPatients();
   }
 
+  isPhoneValid(): boolean {
+    if (!this.form.phone) return false;
+    // Exactly 10 digits (0-9)
+    return /^[0-9]{10}$/.test(this.form.phone);
+  }
+
+  onPhoneKeyDown(event: KeyboardEvent) {
+    // Allow navigation, deletion, and system shortcut keys
+    const allowedControlKeys = [
+      'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+      'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+      'Home', 'End'
+    ];
+
+    if (allowedControlKeys.includes(event.key) || event.ctrlKey || event.metaKey) {
+      return;
+    }
+
+    // Allow digits 0-9 only
+    if (/^[0-9]$/.test(event.key)) {
+      const input = event.target as HTMLInputElement;
+      const selectionLength = (input.selectionEnd ?? 0) - (input.selectionStart ?? 0);
+      // Prevent typing more than 10 digits unless replacing selected text
+      if (input.value.length >= 10 && selectionLength === 0) {
+        event.preventDefault();
+      }
+      return;
+    }
+
+    // Block alphabets and all other non-numeric characters
+    event.preventDefault();
+  }
+
+  onPhoneInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    // Keep only digits and limit to strictly 10 digits
+    const val = input.value.replace(/\D/g, '').slice(0, 10);
+    this.form.phone = val;
+    input.value = val;
+  }
+
   submitRegistration() {
+    this.phoneTouched = true;
+    if (!this.form.name || !this.isPhoneValid() || !this.form.dob) {
+      return;
+    }
+
     this.api.registerPatient({
-      name: this.form.name,
-      phone: this.form.phone,
+      name: this.form.name.trim(),
+      phone: this.form.phone.trim(),
       dob: this.form.dob,
       consentType: this.form.consentAccepted ? 'TreatmentAndReminders' : undefined
     }).subscribe(res => {
       if (res.warning.hasPotentialDuplicate) {
         this.duplicateWarning.set(res.warning);
       } else {
-        this.showRegisterModal = false;
-        this.resetForm();
+        this.closeRegisterModal();
         this.loadPatients();
       }
     });
@@ -289,6 +363,7 @@ export class PatientListComponent implements OnInit {
 
   private resetForm() {
     this.form = { name: '', phone: '', dob: '', consentAccepted: true };
+    this.phoneTouched = false;
     this.duplicateWarning.set(null);
   }
 }

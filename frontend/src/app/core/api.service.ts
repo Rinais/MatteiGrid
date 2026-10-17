@@ -80,8 +80,7 @@ export class ApiService {
 
   private getHeaders(): HttpHeaders {
     let headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'X-Clinic-Id': this.auth.currentClinicId()
+      'Content-Type': 'application/json'
     });
     const token = this.auth.getToken();
     if (token) {

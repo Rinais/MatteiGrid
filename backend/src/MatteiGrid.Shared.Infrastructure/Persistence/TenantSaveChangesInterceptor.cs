@@ -33,17 +33,42 @@ public sealed class TenantSaveChangesInterceptor : SaveChangesInterceptor
 
     private void StampTenant(DbContext? context)
     {
-        if (context is null || _tenantContext.ClinicId is null) return;
+        if (context is null) return;
 
-        foreach (var entry in context.ChangeTracker.Entries<IClinicScopedEntity>())
+        foreach (var entry in context.ChangeTracker.Entries())
         {
-            if (entry.State == EntityState.Added)
+            // AUTH-06: Append-only enforcement for audit logs
+            if (entry.Entity is Audit.AuditLog && (entry.State == EntityState.Modified || entry.State == EntityState.Deleted))
             {
-                entry.Entity.ClinicId = _tenantContext.ClinicId.Value;
+                throw new InvalidOperationException("Audit logs are append-only and cannot be modified or deleted.");
             }
-            else if (entry.State == EntityState.Modified && entry.Entity.ClinicId != _tenantContext.ClinicId.Value)
+
+            // AUTH-02: Tenant isolation checks on write, modify, delete
+            if (entry.Entity is IClinicScopedEntity scopedEntity)
             {
-                throw new InvalidOperationException("Cross-tenant write attempt detected.");
+                if (entry.State == EntityState.Added)
+                {
+                    if (scopedEntity.ClinicId == Guid.Empty)
+                    {
+                        if (_tenantContext.ClinicId.HasValue)
+                        {
+                            scopedEntity.ClinicId = _tenantContext.ClinicId.Value;
+                        }
+                    }
+                    else if (_tenantContext.ClinicId.HasValue && scopedEntity.ClinicId != _tenantContext.ClinicId.Value)
+                    {
+                        throw new InvalidOperationException(
+                            $"Cross-tenant write attempt detected: entity ClinicId '{scopedEntity.ClinicId}' does not match context '{_tenantContext.ClinicId}'.");
+                    }
+                }
+                else if (entry.State == EntityState.Modified || entry.State == EntityState.Deleted)
+                {
+                    if (_tenantContext.ClinicId.HasValue && scopedEntity.ClinicId != _tenantContext.ClinicId.Value)
+                    {
+                        throw new InvalidOperationException(
+                            $"Cross-tenant mutation attempt detected: entity ClinicId '{scopedEntity.ClinicId}' does not match context '{_tenantContext.ClinicId}'.");
+                    }
+                }
             }
         }
     }

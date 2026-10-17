@@ -1,4 +1,5 @@
 using System.Text;
+using MatteiGrid.Api.Authorization;
 using MatteiGrid.Api.Endpoints;
 using MatteiGrid.Api.Hubs;
 using MatteiGrid.Api.Middleware;
@@ -21,12 +22,17 @@ using MatteiGrid.Modules.Patients.Contracts;
 using MatteiGrid.Modules.Patients.Services;
 using MatteiGrid.Modules.Prescriptions.Contracts;
 using MatteiGrid.Modules.Prescriptions.Services;
+using MatteiGrid.Shared.Infrastructure.Audit;
+using MatteiGrid.Shared.Infrastructure.Logging;
 using MatteiGrid.Shared.Infrastructure.Persistence;
 using MatteiGrid.Shared.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using Serilog.Events;
 
 namespace MatteiGrid.Api;
 
@@ -34,11 +40,29 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
+            .Enrich.FromLogContext()
+            .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] [{SourceContext}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.SynchronizedDualFile(
+                logDirectory: "logs",
+                maxLinesPerFile: 10_000,
+                retentionDays: 14)
+            .CreateLogger();
+
+        try
+        {
+            Log.Information("[LIFECYCLE] Starting Mattei Grid API application host...");
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Host.UseSerilog();
 
         // --- DATABASE & TENANCY ---
         builder.Services.AddScoped<ICurrentTenantContext, CurrentTenantContext>();
         builder.Services.AddScoped<TenantSaveChangesInterceptor>();
+        builder.Services.AddScoped<IAuditService, AuditService>();
 
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
         builder.Services.AddDbContext<AppDbContext>((sp, options) =>
@@ -46,13 +70,14 @@ public class Program
             var interceptor = sp.GetRequiredService<TenantSaveChangesInterceptor>();
             options.AddInterceptors(interceptor);
 
-            if (!string.IsNullOrWhiteSpace(connectionString) && !connectionString.Contains("localhost"))
+            var useInMemory = builder.Configuration.GetValue<bool>("UseInMemoryDatabase", false);
+            if (!string.IsNullOrWhiteSpace(connectionString) && !useInMemory)
             {
                 options.UseNpgsql(connectionString);
             }
             else
             {
-                // In-memory / development fallback if Postgres isn't directly up
+                // In-memory / development fallback if configured or no connection string
                 options.UseInMemoryDatabase("MatteiGridDevDb");
             }
         });
@@ -60,17 +85,21 @@ public class Program
         // --- IDENTITY & JWT ---
         builder.Services.AddIdentityCore<ApplicationUser>(options =>
         {
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequiredLength = 6;
+            // Security hardening: strong password policy & lockout
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequiredLength = 8;
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
         })
         .AddRoles<IdentityRole<Guid>>()
         .AddEntityFrameworkStores<AppDbContext>();
 
         builder.Services.AddSingleton<JwtTokenService>();
-        builder.Services.AddScoped<IIdentityModule, IdentityModule>();
+        builder.Services.AddLoggedScoped<IIdentityModule, IdentityModule>();
 
         var jwtKey = builder.Configuration["Jwt:Key"] ?? "MatteiGridDefaultSecretKey123456789012345!";
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -78,25 +107,51 @@ public class Program
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
+                    ValidateIssuer = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "MatteiGridApi",
+                    ValidateAudience = true,
+                    ValidAudience = builder.Configuration["Jwt:Audience"] ?? "MatteiGridClients",
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+                    ClockSkew = TimeSpan.Zero
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });
 
-        builder.Services.AddAuthorization();
+        // AUTH-03: Deny-by-default fallback policy - any unannotated endpoint requires an authenticated user
+        builder.Services.AddAuthorization(options =>
+        {
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+        });
 
-        // --- MODULE SERVICES ---
-        builder.Services.AddScoped<IPatientService, PatientService>();
-        builder.Services.AddScoped<IAppointmentService, AppointmentService>();
-        builder.Services.AddScoped<IClinicalService, ClinicalService>();
-        builder.Services.AddScoped<IMateriaMedicaService, MateriaMedicaService>();
-        builder.Services.AddScoped<IPrescriptionService, PrescriptionService>();
-        builder.Services.AddScoped<ILaboratoryService, LaboratoryService>();
-        builder.Services.AddScoped<IInventoryService, InventoryService>();
-        builder.Services.AddScoped<IBillingService, BillingService>();
+        builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+        builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
+        // --- MODULE SERVICES (AOP Method Entry/Exit & Performance Logging) ---
+        builder.Services.AddLoggedScoped<IPatientService, PatientService>();
+        builder.Services.AddLoggedScoped<IAppointmentService, AppointmentService>();
+        builder.Services.AddLoggedScoped<IClinicalService, ClinicalService>();
+        builder.Services.AddLoggedScoped<IMateriaMedicaService, MateriaMedicaService>();
+        builder.Services.AddLoggedScoped<IPrescriptionService, PrescriptionService>();
+        builder.Services.AddLoggedScoped<ILaboratoryService, LaboratoryService>();
+        builder.Services.AddLoggedScoped<IInventoryService, InventoryService>();
+        builder.Services.AddLoggedScoped<IBillingService, BillingService>();
         builder.Services.AddScoped<MatteiGrid.Shared.Kernel.IPaymentLockChecker, MatteiGrid.Modules.Billing.Services.PaymentLockChecker>();
 
         // --- SIGNALR & REAL-TIME ---
@@ -120,6 +175,19 @@ public class Program
 
         var app = builder.Build();
 
+        // --- MIDDLEWARE PIPELINE ---
+        // 1. Global Exception Handler: catches any unhandled fatal crash and returns RFC 7807 ProblemDetails
+        app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+
+        // 2. Security headers
+        app.Use(async (context, next) =>
+        {
+            context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+            context.Response.Headers.Append("X-Frame-Options", "DENY");
+            context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+            await next();
+        });
+
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {
@@ -130,6 +198,10 @@ public class Program
         app.UseCors();
         app.UseAuthentication();
         app.UseMiddleware<TenantResolutionMiddleware>();
+
+        // 3. Request & Response Logging: logs HTTP method, path, latency, status code with resolved tenant context
+        app.UseMiddleware<RequestResponseLoggingMiddleware>();
+
         app.UseAuthorization();
 
         // Map Endpoints & Hubs
@@ -143,12 +215,16 @@ public class Program
             status = "Operational",
             version = "2.4",
             documentation = "/swagger"
-        }));
+        })).AllowAnonymous();
 
-        using (var scope = app.Services.CreateScope())
+        // AUTH-08: Gate database seeding strictly to Development environment
+        if (app.Environment.IsDevelopment())
         {
+            using var scope = app.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            MatteiGrid.Api.Data.DatabaseSeeder.SeedAsync(db).GetAwaiter().GetResult();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+            MatteiGrid.Api.Data.DatabaseSeeder.SeedAsync(db, userManager, roleManager).GetAwaiter().GetResult();
         }
 
         // Automatically launch default browser to Swagger on startup in Development
@@ -177,5 +253,15 @@ public class Program
         });
 
         app.Run();
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "[FATAL] [LIFECYCLE] Host terminated unexpectedly: {Message}", ex.Message);
+            throw;
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
     }
 }
