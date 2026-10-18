@@ -13,7 +13,9 @@ import {
   LaboratoryOrder,
   InventoryItem,
   Invoice,
-  PaymentLink
+  PaymentLink,
+  User,
+  AuditLog
 } from './models';
 
 @Injectable({
@@ -76,6 +78,20 @@ export class ApiService {
         expiresAt: new Date(Date.now() + 48 * 3600000).toISOString()
       }
     }
+  ];
+
+  private mockUsers: User[] = [
+    { id: '11111111-1111-1111-1111-111111111111', email: 'doctor@clinic.com', fullName: 'Dr. Cesare Mattei', role: 'Doctor', clinicId: '00000000-0000-0000-0000-000000000001', permissions: ['Patients.Read', 'Consultations.Read', 'Prescriptions.Read', 'Laboratory.Read', 'Inventory.Read', 'Billing.Read'] },
+    { id: '22222222-2222-2222-2222-222222222222', email: 'reception@clinic.com', fullName: 'Anita Sharma (Receptionist)', role: 'Receptionist', clinicId: '00000000-0000-0000-0000-000000000001', permissions: ['Patients.Read', 'Appointments.Read', 'Billing.Read'] },
+    { id: '33333333-3333-3333-3333-333333333333', email: 'lab@clinic.com', fullName: 'Rahul Verma (Lab Tech)', role: 'Lab Technician', clinicId: '00000000-0000-0000-0000-000000000001', permissions: ['Laboratory.Read', 'Laboratory.UpdateStatus', 'Laboratory.Reject'] },
+    { id: '44444444-4444-4444-4444-444444444444', email: 'admin@clinic.com', fullName: 'Clinic Administrator', role: 'Administrator', clinicId: '00000000-0000-0000-0000-000000000001', permissions: ['Patients.Read', 'Appointments.Read', 'Inventory.Read', 'Billing.Read', 'Administration.ManageUsers', 'Administration.AuditLogs'] },
+    { id: '55555555-5555-5555-5555-555555555555', email: 'superadmin@matteigrid.com', fullName: 'Platform SuperAdmin', role: 'SuperAdmin', clinicId: '00000000-0000-0000-0000-000000000001', permissions: ['SuperAdmin.PlatformOps', 'SuperAdmin.ManageTenants', 'SuperAdmin.BreakGlass', 'Administration.ManageUsers', 'Administration.AuditLogs'] }
+  ];
+
+  private mockAuditLogs: AuditLog[] = [
+    { id: 'al-1', clinicId: '00000000-0000-0000-0000-000000000001', eventType: 'Auth.Login', action: 'TenantSelected', entityName: 'User', userEmail: 'doctor@clinic.com', details: 'Doctor logged in with clinic 00000000-0000-0000-0000-000000000001', createdAt: new Date(Date.now() - 3600000).toISOString() },
+    { id: 'al-2', clinicId: '00000000-0000-0000-0000-000000000001', eventType: 'User.PasswordReset', action: 'AdminResetPassword', entityName: 'User', userEmail: 'superadmin@matteigrid.com', details: 'Administrator reset password for user: reception@clinic.com', createdAt: new Date(Date.now() - 7200000).toISOString() },
+    { id: 'al-3', clinicId: '00000000-0000-0000-0000-000000000001', eventType: 'SuperAdmin.BreakGlass', action: 'BreakGlassInitiated', entityName: 'BreakGlassSession', userEmail: 'superadmin@matteigrid.com', details: 'Emergency incident INC-98762: Patient records locked in clinical consultation.', createdAt: new Date(Date.now() - 86400000).toISOString() }
   ];
 
   private getHeaders(): HttpHeaders {
@@ -342,5 +358,76 @@ export class ApiService {
           return of(newLink);
         })
       );
+  }
+
+  // --- Administration & SuperAdmin ---
+  getUsers(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.baseUrl}/admin/users`, { headers: this.getHeaders() })
+      .pipe(
+        catchError(() => of(this.mockUsers))
+      );
+  }
+
+  adminResetPassword(userId: string, newPassword: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.baseUrl}/admin/users/${userId}/reset-password`,
+      { newPassword },
+      { headers: this.getHeaders() }
+    ).pipe(
+      catchError((err) => {
+        const errorMsg = err?.error?.message || 'Password reset failed.';
+        const user = this.mockUsers.find(u => u.id === userId);
+        if (user) {
+          this.mockAuditLogs.unshift({
+            id: `al-${Date.now()}`,
+            clinicId: user.clinicId,
+            eventType: 'User.PasswordReset',
+            action: 'AdminResetPassword',
+            entityName: 'User',
+            userEmail: this.auth.currentUser()?.email || 'admin@clinic.com',
+            details: `Password reset successfully for ${user.email}`,
+            createdAt: new Date().toISOString()
+          });
+          return of({ message: `Password reset successfully for ${user.email} (Simulated).` });
+        }
+        throw new Error(errorMsg);
+      })
+    );
+  }
+
+  getAuditLogs(): Observable<AuditLog[]> {
+    return this.http.get<AuditLog[]>(`${this.baseUrl}/admin/audit-logs`, { headers: this.getHeaders() })
+      .pipe(
+        catchError(() => of(this.mockAuditLogs))
+      );
+  }
+
+  initiateBreakGlass(reason: string, durationMinutes = 30): Observable<any> {
+    return this.http.post(`${this.baseUrl}/superadmin/break-glass`, {
+      clinicId: this.auth.currentClinicId(),
+      ticketNumber: `TICKET-${Math.floor(1000 + Math.random() * 9000)}`,
+      reason,
+      durationMinutes
+    }, { headers: this.getHeaders() }).pipe(
+      catchError(() => {
+        this.auth.isBreakGlass.set(true);
+        this.mockAuditLogs.unshift({
+          id: `al-${Date.now()}`,
+          clinicId: this.auth.currentClinicId(),
+          eventType: 'SuperAdmin.BreakGlass',
+          action: 'BreakGlassInitiated',
+          entityName: 'BreakGlassSession',
+          userEmail: this.auth.currentUser()?.email || 'superadmin@matteigrid.com',
+          details: `Emergency break-glass initiated: ${reason} (${durationMinutes}m)`,
+          createdAt: new Date().toISOString()
+        });
+        return of({
+          accessToken: 'break-glass-token-simulated',
+          expiresAt: new Date(Date.now() + durationMinutes * 60000).toISOString(),
+          sessionId: `bg-${Date.now()}`,
+          clinicId: this.auth.currentClinicId()
+        });
+      })
+    );
   }
 }

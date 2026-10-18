@@ -109,7 +109,20 @@ Authentication: JWT Bearer Token (`Authorization: Bearer <token>`) + HTTP-Only C
 
 ---
 
-## 10. Real-Time SignalR Hubs
+## 10. Administration & Platform (`/api/v1/admin` & `/api/v1/superadmin`)
+
+| Method | Endpoint | Permission Required | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/admin/users` | `Administration.ManageUsers` | List all active users within the current tenant or platform scope. |
+| `POST` | `/api/v1/admin/users` | `Administration.ManageUsers` | Create a new user account with specified role and clinic assignment. |
+| `POST` | `/api/v1/admin/users/{id}/role` | `Administration.AssignRoles` | Reassign user role and bump `TokenVersion` to revoke existing sessions. |
+| `POST` | `/api/v1/admin/users/{id}/reset-password` | `Administration.ManageUsers` | Administrative password reset. Removes existing password, applies new password, resets lockout count, and invalidates active tokens. |
+| `GET` | `/api/v1/admin/audit-logs` | `Administration.AuditLogs` | Fetch the 100 most recent immutable audit log records. |
+| `POST` | `/api/v1/superadmin/break-glass` | `SuperAdmin.BreakGlass` | Declare emergency break-glass session granting temporary audited clinical access (DPDP Act 2023). |
+
+---
+
+## 11. Real-Time SignalR Hubs
 
 ### A. Laboratory Queue Hub: `/hubs/lab-queue`
 - **Authentication**: Required (`[Authorize]`)
@@ -129,13 +142,13 @@ Authentication: JWT Bearer Token (`Authorization: Bearer <token>`) + HTTP-Only C
 
 ---
 
-## 11. Error Responses & Diagnostic Headers
+## 12. Error Responses & Diagnostic Headers
 
-### 11.1. Request Diagnostics
+### 12.1. Request Diagnostics
 - Every request is tagged with an opaque `TraceId` (`context.TraceIdentifier`).
 - All requests and responses are captured in `logs/matteigrid-requests-yyyyMMdd_{seq}.log` including status code, route, tenant ID (`ClinicId`), and latency (ms).
 
-### 11.2. Standardized RFC 7807 Error Response
+### 12.2. Standardized RFC 7807 Error Response
 When an unhandled exception occurs, `GlobalExceptionHandlingMiddleware` catches the failure, logs a `[FATAL] [SYSTEM_CRASH]` event to `logs/matteigrid-app-yyyyMMdd_{seq}.log`, and returns HTTP 500:
 
 ```json
@@ -149,4 +162,5 @@ When an unhandled exception occurs, `GlobalExceptionHandlingMiddleware` catches 
 }
 ```
 *Internal exception messages and database stack traces are redacted from the client response to safeguard tenant security; developers can correlate the issue via `traceId`.*
+
 

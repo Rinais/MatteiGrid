@@ -14,7 +14,9 @@ import { Appointment, LaboratoryOrder, InventoryItem, Invoice } from '../../core
       <div class="dashboard-header">
         <div>
           <h1 class="dashboard-title">{{ auth.currentUser()?.role }} Dashboard</h1>
-          <p class="dashboard-subtitle">Operational summary for Mattei Grid clinical practice</p>
+          <p class="dashboard-subtitle">
+            {{ auth.currentUser()?.role === 'SuperAdmin' ? 'Platform-wide governance & tenant operations' : 'Operational summary for Mattei Grid clinical practice' }}
+          </p>
         </div>
         <div class="action-buttons">
           <a routerLink="/consultation" class="btn btn-primary" *ngIf="auth.currentUser()?.role === 'Doctor'">
@@ -26,33 +28,69 @@ import { Appointment, LaboratoryOrder, InventoryItem, Invoice } from '../../core
           <a routerLink="/lab" class="btn btn-primary" *ngIf="auth.currentUser()?.role === 'Lab Technician'">
             View Lab Queue
           </a>
+          <a routerLink="/admin" class="btn btn-primary" *ngIf="auth.currentUser()?.role === 'Administrator' || auth.currentUser()?.role === 'SuperAdmin'">
+            🔑 Manage Users & Passwords
+          </a>
         </div>
       </div>
 
-      <!-- Quick Metrics Grid -->
+      <!-- Quick Metrics Grid: Scoped to Role Permissions -->
       <div class="metrics-grid">
-        <div class="metric-card">
+        <!-- Clinical / Practice Metrics (Doctor, Receptionist, Administrator) -->
+        <div class="metric-card" *ngIf="auth.hasPermission('Appointments.Read') && auth.currentUser()?.role !== 'SuperAdmin'">
           <div class="metric-label">Today's Appointments</div>
           <div class="metric-value">{{ appointments().length }}</div>
           <div class="metric-subtext">Confirmed schedule</div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card" *ngIf="auth.hasPermission('Laboratory.Read') && auth.currentUser()?.role !== 'SuperAdmin'">
           <div class="metric-label">Active Lab Orders</div>
           <div class="metric-value">{{ activeLabOrdersCount() }}</div>
           <div class="metric-subtext">In prep queue</div>
         </div>
 
-        <div class="metric-card">
+        <div class="metric-card" *ngIf="auth.hasPermission('Billing.Read') && auth.currentUser()?.role !== 'SuperAdmin'">
           <div class="metric-label">Pending Invoices</div>
           <div class="metric-value">{{ pendingInvoicesCount() }}</div>
           <div class="metric-subtext">Unsettled accounts</div>
         </div>
 
-        <div class="metric-card" [class.alert]="lowStockCount() > 0">
+        <div class="metric-card" [class.alert]="lowStockCount() > 0" *ngIf="auth.hasPermission('Inventory.Read') && auth.currentUser()?.role !== 'SuperAdmin'">
           <div class="metric-label">Low Stock Alerts</div>
           <div class="metric-value">{{ lowStockCount() }}</div>
           <div class="metric-subtext">{{ lowStockCount() > 0 ? 'Requires restock' : 'Adequate levels' }}</div>
+        </div>
+
+        <!-- Administrator Metric -->
+        <div class="metric-card" *ngIf="auth.currentUser()?.role === 'Administrator'">
+          <div class="metric-label">Clinic Staff & Users</div>
+          <div class="metric-value">{{ totalUsersCount() }}</div>
+          <div class="metric-subtext">Active accounts</div>
+        </div>
+
+        <!-- SuperAdmin Platform Governance Metrics (Zero Clinical PHI per DPDP Act 2023) -->
+        <div class="metric-card" *ngIf="auth.currentUser()?.role === 'SuperAdmin'">
+          <div class="metric-label">Connected Tenants</div>
+          <div class="metric-value">2</div>
+          <div class="metric-subtext">Tenant Model A isolation</div>
+        </div>
+
+        <div class="metric-card" *ngIf="auth.currentUser()?.role === 'SuperAdmin'">
+          <div class="metric-label">Platform Accounts</div>
+          <div class="metric-value">{{ totalUsersCount() }}</div>
+          <div class="metric-subtext">Across all tenants</div>
+        </div>
+
+        <div class="metric-card" *ngIf="auth.currentUser()?.role === 'SuperAdmin'">
+          <div class="metric-label">Security Audit Logs</div>
+          <div class="metric-value">{{ auditLogCount() }}</div>
+          <div class="metric-subtext">Recorded security events</div>
+        </div>
+
+        <div class="metric-card" [class.alert]="auth.isBreakGlass()" *ngIf="auth.currentUser()?.role === 'SuperAdmin'">
+          <div class="metric-label">Break-Glass State</div>
+          <div class="metric-value">{{ auth.isBreakGlass() ? 'ARMED' : 'NORMAL' }}</div>
+          <div class="metric-subtext">{{ auth.isBreakGlass() ? 'Emergency clinical access' : 'Zero clinical PHI' }}</div>
         </div>
       </div>
 
@@ -132,7 +170,7 @@ import { Appointment, LaboratoryOrder, InventoryItem, Invoice } from '../../core
 
       <!-- Section: Administrator View -->
       <div class="role-section" *ngIf="auth.currentUser()?.role === 'Administrator'">
-        <div class="section-title">Clinic Inventory & Compliance Overview</div>
+        <div class="section-title">Clinic Inventory & Operations Overview</div>
         <div class="admin-grid">
           <div class="admin-box">
             <h4>Inventory Status</h4>
@@ -141,10 +179,32 @@ import { Appointment, LaboratoryOrder, InventoryItem, Invoice } from '../../core
             <a routerLink="/inventory" class="btn btn-sm btn-outline">Restock Inventory</a>
           </div>
           <div class="admin-box">
-            <h4>DPDP Act 2023 Compliance</h4>
-            <p>Patient Consent Records: Active</p>
-            <p>Anonymized PII Erasure: Ready</p>
-            <a routerLink="/patients" class="btn btn-sm btn-outline">Audit Records</a>
+            <h4>User Administration & Compliance</h4>
+            <p>Total Clinic Staff: {{ totalUsersCount() }}</p>
+            <p>DPDP Act 2023 Compliance: Active</p>
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+              <a routerLink="/patients" class="btn btn-sm btn-outline">Audit Records</a>
+              <a routerLink="/admin" class="btn btn-sm btn-primary">Manage Users & Passwords</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: SuperAdmin View (Platform & Governance) -->
+      <div class="role-section" *ngIf="auth.currentUser()?.role === 'SuperAdmin'">
+        <div class="section-title">Platform Operations & Security Oversight</div>
+        <div class="admin-grid">
+          <div class="admin-box">
+            <h4>Multi-Tenant Infrastructure</h4>
+            <p>Active Tenants: <strong>2 Connected Practices</strong></p>
+            <p>Isolation Mode: <strong>Tenancy Model A (Query Filter & SaveInterceptor)</strong></p>
+            <a routerLink="/admin" class="btn btn-sm btn-outline">Inspect Tenants & Break-Glass →</a>
+          </div>
+          <div class="admin-box">
+            <h4>Credential & Access Governance</h4>
+            <p>Total Managed Accounts: {{ totalUsersCount() }}</p>
+            <p>Security Audit Records: {{ auditLogCount() }} recorded events</p>
+            <a routerLink="/admin" class="btn btn-sm btn-primary">🔑 Open Password Reset Utility →</a>
           </div>
         </div>
       </div>
@@ -328,12 +388,19 @@ export class DashboardComponent implements OnInit {
   labOrders = signal<LaboratoryOrder[]>([]);
   inventory = signal<InventoryItem[]>([]);
   invoices = signal<Invoice[]>([]);
+  totalUsersCount = signal<number>(5);
+  auditLogCount = signal<number>(3);
 
   ngOnInit() {
     this.api.getAppointments().subscribe(appts => this.appointments.set(appts));
     this.api.getLabQueue().subscribe(orders => this.labOrders.set(orders));
     this.api.getInventory().subscribe(inv => this.inventory.set(inv));
     this.api.getInvoices().subscribe(invs => this.invoices.set(invs));
+
+    if (this.auth.hasPermission('Administration.ManageUsers')) {
+      this.api.getUsers().subscribe(users => this.totalUsersCount.set(users.length));
+      this.api.getAuditLogs().subscribe(logs => this.auditLogCount.set(logs.length));
+    }
   }
 
   activeLabOrdersCount(): number {

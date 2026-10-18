@@ -123,11 +123,14 @@ export class AuthService {
         role: 'SuperAdmin',
         clinicId: '00000000-0000-0000-0000-000000000001',
         permissions: [
-          'SuperAdmin.PlatformOps', 'SuperAdmin.ManageTenants', 'SuperAdmin.BreakGlass'
+          'SuperAdmin.PlatformOps', 'SuperAdmin.ManageTenants', 'SuperAdmin.BreakGlass',
+          'Administration.ManageUsers', 'Administration.AssignRoles', 'Administration.Settings', 'Administration.MasterData', 'Administration.AuditLogs', 'Administration.Reports'
         ]
       }
     }
   };
+
+  isBreakGlass = signal<boolean>(false);
 
   login(email: string, password: string, clinicId?: string): Observable<boolean> {
     return this.http.post<AuthResponse>(
@@ -193,7 +196,10 @@ export class AuthService {
     const user = this.currentUser();
     if (!user) return false;
     if (user.role === 'SuperAdmin') {
-      return permission.startsWith('SuperAdmin.') || (user.permissions?.includes(permission) ?? false);
+      if (this.isBreakGlass()) return true;
+      return permission.startsWith('SuperAdmin.') ||
+             permission.startsWith('Administration.') ||
+             (user.permissions?.includes(permission) ?? false);
     }
     return user.permissions?.includes(permission) ?? false;
   }

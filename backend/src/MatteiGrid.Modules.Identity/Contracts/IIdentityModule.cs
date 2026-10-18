@@ -19,6 +19,7 @@ public record UserDto(Guid Id, string Email, string FullName, string Role, Guid 
 
 public record BreakGlassRequest(Guid ClinicId, string TicketNumber, string Reason, int DurationMinutes);
 public record BreakGlassResponse(string AccessToken, DateTimeOffset ExpiresAt, Guid SessionId, Guid ClinicId);
+public record AdminResetPasswordRequest(string NewPassword);
 
 public interface IIdentityModule
 {
@@ -32,4 +33,5 @@ public interface IIdentityModule
     Task AssignRoleAsync(Guid userId, string role, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<string>> GetUserPermissionsAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<BreakGlassResponse> InitiateBreakGlassAsync(Guid superAdminUserId, BreakGlassRequest request, CancellationToken cancellationToken = default);
+    Task<MatteiGrid.Shared.Kernel.Result> AdminResetPasswordAsync(Guid userId, string newPassword, CancellationToken cancellationToken = default);
 }

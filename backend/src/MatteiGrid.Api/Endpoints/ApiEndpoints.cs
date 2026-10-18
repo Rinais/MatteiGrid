@@ -441,6 +441,22 @@ public static class ApiEndpoints
             return Results.Ok();
         }).RequirePermission(Permissions.AdministrationAssignRoles);
 
+        admin.MapPost("/users/{id:guid}/reset-password", async (Guid id, AdminResetPasswordRequest req, IIdentityModule identity) =>
+        {
+            if (string.IsNullOrWhiteSpace(req.NewPassword))
+            {
+                return Results.BadRequest(new { error = "PasswordRequired", message = "New password cannot be empty." });
+            }
+
+            var result = await identity.AdminResetPasswordAsync(id, req.NewPassword);
+            if (!result.IsSuccess)
+            {
+                return Results.BadRequest(new { error = "PasswordResetFailed", message = result.Error });
+            }
+
+            return Results.Ok(new { message = "Password reset successfully." });
+        }).RequirePermission(Permissions.AdministrationManageUsers);
+
         admin.MapGet("/audit-logs", async (AppDbContext db, ICurrentTenantContext tenantContext) =>
         {
             var logs = await db.AuditLogs

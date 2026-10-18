@@ -88,15 +88,16 @@ frontend/src/app/
 │   ├── auth.guard.ts      # Route guard verifying JWT and permissions
 │   └── models.ts          # Strongly-typed TypeScript interfaces matching backend DTOs
 ├── layout/                # Shell layout, sidebar, tenant badge, navigation
-│   └── nav-shell.component.ts
+│   └── nav-shell.component.ts # Role-scoped navigation links
 └── features/              # Feature domain modules
-    ├── auth/              # Login, tenant selection, password reset
-    ├── dashboard/         # Role-tailored dashboard
+    ├── auth/              # Login, tenant selection, demo profiles
+    ├── dashboard/         # Role-tailored dashboard (Clinical vs Front-Desk vs Platform)
     ├── patients/          # Patient directory & registration
     ├── consultation/      # Consultation room & prescription builder
     ├── laboratory/        # Real-time laboratory preparation queue
     ├── inventory/         # Stock levels, items, batches
-    └── billing/           # Invoices, payment links, payment records
+    ├── billing/           # Invoices, payment links, payment records
+    └── admin/             # User directory, password reset utility, audit logs, break-glass
 ```
 
 ---
@@ -108,16 +109,19 @@ frontend/src/app/
 
 ---
 
-## 6. Authentication & Authorization
+## 6. Authentication, Authorization & Role Scoping
 
-- **Authentication**: JWT Bearer tokens with short expiry (e.g., 60 minutes) + HTTP-only secure refresh token cookie (`__Host-mattei-refresh-token`).
-- **Authorization**: Granular permissions (e.g. `Patients.View`, `Prescriptions.Create`, `Laboratory.Process`, `Billing.Manage`).
-- **Predefined Roles**:
-  - `ClinicAdmin`: Full clinic configuration, staff roles, billing, reports.
-  - `Doctor`: Patient consults, clinical notes, digital prescriptions.
-  - `LabTechnician`: Lab queue, medicine preparation, stock deduction.
-  - `Pharmacist`: Inventory dispensing, medicine stock management.
-  - `Receptionist`: Patient registration, scheduling appointments, collecting initial invoice payments.
+- **Authentication**: JWT Bearer tokens with short expiry (e.g., 15 minutes) + HTTP-only secure refresh token cookie (`__Host-mattei-refresh-token`).
+- **Authorization**: Granular permissions (e.g. `Patients.Read`, `Prescriptions.Finalize`, `Laboratory.UpdateStatus`, `Billing.Read`, `Administration.ManageUsers`).
+- **Role Scoping & UX Visibility**:
+  - `Doctor`: Clinical access (`Patients.Read`, `Consultations.Read`, `Prescriptions.Finalize`, `MateriaMedica.Read`, `Laboratory.Read`, `Inventory.Read`, `Billing.Read`).
+  - `Receptionist`: Front desk intake & billing (`Patients.Read`, `Appointments.Read`, `Billing.Read`). Clinical Rx authoring, lab queues, and inventory management are hidden.
+  - `Lab Technician`: Laboratory queue compounding (`Laboratory.Read`, `Laboratory.UpdateStatus`, `Laboratory.Reject`). All clinical consultations, patient directories, and financial invoices are hidden.
+  - `Administrator`: Practice operations, user management, and compliance (`Patients.Read`, `Appointments.Read`, `Inventory.Read`, `Billing.Read`, `Administration.ManageUsers`, `Administration.AuditLogs`).
+  - `SuperAdmin`: Platform multi-tenant operations (`SuperAdmin.PlatformOps`, `Administration.ManageUsers`, `SuperAdmin.BreakGlass`). Strict zero-default access to patient clinical PHI in compliance with DPDP Act 2023; clinical data access requires an active, audited emergency Break-Glass session.
+- **Administrative Password Reset**:
+  - `POST /api/v1/admin/users/{id}/reset-password` allows Administrators and SuperAdmins to directly reset user credentials.
+  - Clears failed access counters, removes account lockouts, revokes all active refresh token families by updating the user security stamp, and logs an immutable `User.PasswordReset` audit trail.
 
 ---
 

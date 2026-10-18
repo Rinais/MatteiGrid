@@ -52,8 +52,9 @@ public class PermissionAuthorizationHandler : AuthorizationHandler<HasPermission
                 return Task.CompletedTask;
             }
 
-            // Platform ops permissions granted to SuperAdmin
-            if (requirement.Permission.StartsWith("SuperAdmin.", StringComparison.OrdinalIgnoreCase))
+            // Platform ops and Administration permissions granted to SuperAdmin
+            if (requirement.Permission.StartsWith("SuperAdmin.", StringComparison.OrdinalIgnoreCase) ||
+                requirement.Permission.StartsWith("Administration.", StringComparison.OrdinalIgnoreCase))
             {
                 context.Succeed(requirement);
                 return Task.CompletedTask;

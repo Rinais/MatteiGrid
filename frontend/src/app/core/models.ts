@@ -173,3 +173,17 @@ export interface Invoice {
   payments: Payment[];
   activePaymentLink?: PaymentLink;
 }
+
+export interface AuditLog {
+  id: string;
+  clinicId?: string;
+  eventType: string;
+  action: string;
+  entityName?: string;
+  entityId?: string;
+  details?: string;
+  userId?: string;
+  userEmail?: string;
+  createdAt: string;
+}
+

@@ -64,7 +64,7 @@ public static class DatabaseSeeder
                 }
 
                 // Ensure UserClinicMembership
-                if (!await db.Set<UserClinicMembership>().AnyAsync(m => m.UserId == user.Id && m.ClinicId == DefaultClinicId))
+                if (!await db.Set<UserClinicMembership>().IgnoreQueryFilters().AnyAsync(m => m.UserId == user.Id && m.ClinicId == DefaultClinicId))
                 {
                     db.Set<UserClinicMembership>().Add(new UserClinicMembership
                     {
@@ -80,7 +80,7 @@ public static class DatabaseSeeder
         }
 
         // 1. Clinic
-        if (!await db.Set<Clinic>().AnyAsync(c => c.Id == DefaultClinicId))
+        if (!await db.Set<Clinic>().IgnoreQueryFilters().AnyAsync(c => c.Id == DefaultClinicId))
         {
             db.Set<Clinic>().Add(new Clinic
             {
@@ -90,8 +90,8 @@ public static class DatabaseSeeder
             await db.SaveChangesAsync();
         }
 
-        // 2. Staff
-        if (!await db.Set<Staff>().AnyAsync(s => s.Id == DefaultDoctorId))
+        // 2. Staff (AUTH-02: Bypass tenant filter during startup seeding)
+        if (!await db.Set<Staff>().IgnoreQueryFilters().AnyAsync(s => s.Id == DefaultDoctorId))
         {
             db.Set<Staff>().Add(new Staff
             {
@@ -119,7 +119,7 @@ public static class DatabaseSeeder
 
         foreach (var entry in mmEntries)
         {
-            if (!await db.Set<MateriaMedicaEntry>().AnyAsync(m => m.Code == entry.Code))
+            if (!await db.Set<MateriaMedicaEntry>().IgnoreQueryFilters().AnyAsync(m => m.Code == entry.Code))
             {
                 db.Set<MateriaMedicaEntry>().Add(entry);
             }
@@ -130,7 +130,7 @@ public static class DatabaseSeeder
         var dilutionLabels = new[] { "1st Dilution (D1)", "2nd Dilution (D2)", "3rd Dilution (D3)", "6C", "30C", "200C" };
         foreach (var label in dilutionLabels)
         {
-            if (!await db.Set<Dilution>().AnyAsync(d => d.ClinicId == DefaultClinicId && d.Label == label))
+            if (!await db.Set<Dilution>().IgnoreQueryFilters().AnyAsync(d => d.ClinicId == DefaultClinicId && d.Label == label))
             {
                 db.Set<Dilution>().Add(new Dilution
                 {
@@ -144,7 +144,7 @@ public static class DatabaseSeeder
         var vehicleNames = new[] { "Distilled Water (Aqua Destillata)", "Globules (Sugar of Milk)", "Diluted Alcohol (30%)", "Ointment Base" };
         foreach (var vName in vehicleNames)
         {
-            if (!await db.Set<Vehicle>().AnyAsync(v => v.ClinicId == DefaultClinicId && v.Name == vName))
+            if (!await db.Set<Vehicle>().IgnoreQueryFilters().AnyAsync(v => v.ClinicId == DefaultClinicId && v.Name == vName))
             {
                 db.Set<Vehicle>().Add(new Vehicle
                 {
@@ -156,10 +156,10 @@ public static class DatabaseSeeder
         await db.SaveChangesAsync();
 
         // 6. Medicines & Initial Inventory
-        var existingMM = await db.Set<MateriaMedicaEntry>().ToListAsync();
+        var existingMM = await db.Set<MateriaMedicaEntry>().IgnoreQueryFilters().ToListAsync();
         foreach (var mm in existingMM)
         {
-            var med = await db.Set<Medicine>().FirstOrDefaultAsync(m => m.ClinicId == DefaultClinicId && m.Name == mm.Name);
+            var med = await db.Set<Medicine>().IgnoreQueryFilters().FirstOrDefaultAsync(m => m.ClinicId == DefaultClinicId && m.Name == mm.Name);
             if (med == null)
             {
                 med = new Medicine
@@ -171,7 +171,10 @@ public static class DatabaseSeeder
                 };
                 db.Set<Medicine>().Add(med);
                 await db.SaveChangesAsync();
+            }
 
+            if (!await db.Set<InventoryItem>().IgnoreQueryFilters().AnyAsync(i => i.ClinicId == DefaultClinicId && i.MedicineId == med.Id))
+            {
                 // Initial inventory of 100 units
                 db.Set<InventoryItem>().Add(new InventoryItem
                 {

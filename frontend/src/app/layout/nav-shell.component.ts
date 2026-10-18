@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../core/auth.service';
 import { SignalRService } from '../core/signalr.service';
 
@@ -64,20 +64,23 @@ import { SignalRService } from '../core/signalr.service';
       <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
         <span class="nav-icon" aria-hidden="true">📊</span> Dashboard
       </a>
-      <a routerLink="/patients" routerLinkActive="active" class="nav-link">
+      <a *ngIf="auth.hasPermission('Patients.Read')" routerLink="/patients" routerLinkActive="active" class="nav-link">
         <span class="nav-icon" aria-hidden="true">👥</span> Patient Registry
       </a>
-      <a routerLink="/consultation" routerLinkActive="active" class="nav-link">
+      <a *ngIf="auth.hasPermission('Consultations.Read')" routerLink="/consultation" routerLinkActive="active" class="nav-link">
         <span class="nav-icon" aria-hidden="true">🔬</span> Consultation & Rx Grid
       </a>
-      <a routerLink="/lab" routerLinkActive="active" class="nav-link">
+      <a *ngIf="auth.hasPermission('Laboratory.Read')" routerLink="/lab" routerLinkActive="active" class="nav-link">
         <span class="nav-icon" aria-hidden="true">🧪</span> Laboratory Queue
       </a>
-      <a routerLink="/inventory" routerLinkActive="active" class="nav-link">
+      <a *ngIf="auth.hasPermission('Inventory.Read')" routerLink="/inventory" routerLinkActive="active" class="nav-link">
         <span class="nav-icon" aria-hidden="true">📦</span> Inventory Ledger
       </a>
-      <a routerLink="/billing" routerLinkActive="active" class="nav-link">
+      <a *ngIf="auth.hasPermission('Billing.Read')" routerLink="/billing" routerLinkActive="active" class="nav-link">
         <span class="nav-icon" aria-hidden="true">💳</span> Invoices & Billing
+      </a>
+      <a *ngIf="auth.hasPermission('Administration.ManageUsers')" routerLink="/admin" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon" aria-hidden="true">⚙️</span> Administration
       </a>
     </nav>
   `,
@@ -271,9 +274,11 @@ import { SignalRService } from '../core/signalr.service';
 export class NavShellComponent {
   auth = inject(AuthService);
   signalR = inject(SignalRService);
+  private router = inject(Router);
 
   onRoleChange(e: Event) {
     const role = (e.target as HTMLSelectElement).value as any;
     this.auth.switchRole(role);
+    this.router.navigate(['/dashboard']);
   }
 }

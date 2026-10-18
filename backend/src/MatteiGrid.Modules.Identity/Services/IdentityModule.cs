@@ -563,6 +563,42 @@ public class IdentityModule : IIdentityModule
         return new BreakGlassResponse(accessToken, expiresAt, session.Id, request.ClinicId);
     }
 
+    public async Task<Result> AdminResetPasswordAsync(Guid userId, string newPassword, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Result.Failure("User not found.");
+        }
+
+        await _userManager.RemovePasswordAsync(user);
+
+        var addRes = await _userManager.AddPasswordAsync(user, newPassword);
+        if (!addRes.Succeeded)
+        {
+            var errorMsg = string.Join("; ", addRes.Errors.Select(e => e.Description));
+            return Result.Failure(errorMsg);
+        }
+
+        await _userManager.ResetAccessFailedCountAsync(user);
+        await _userManager.SetLockoutEndDateAsync(user, null);
+        await _userManager.UpdateSecurityStampAsync(user);
+
+        await _auditService.LogSecurityEventAsync(
+            "User.PasswordReset",
+            "AdminResetPassword",
+            "User",
+            user.Id,
+            $"Administrator reset password for user: {user.Email}",
+            null,
+            user.ClinicId,
+            user.Id.ToString(),
+            user.Email,
+            cancellationToken);
+
+        return Result.Success();
+    }
+
     private static IReadOnlyList<string> ResolvePermissionsForRole(string role)
     {
         if (Permissions.RolePermissions.TryGetValue(role, out var permissions))

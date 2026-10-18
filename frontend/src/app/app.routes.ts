@@ -6,6 +6,7 @@ import { ConsultationWorkspaceComponent } from './features/consultation/consulta
 import { LabQueueComponent } from './features/laboratory/lab-queue.component';
 import { InventoryComponent } from './features/inventory/inventory.component';
 import { BillingComponent } from './features/billing/billing.component';
+import { AdminComponent } from './features/admin/admin.component';
 import { authGuard, guestGuard, permissionGuard } from './core/auth.guard';
 
 export const routes: Routes = [
@@ -17,5 +18,6 @@ export const routes: Routes = [
   { path: 'lab', component: LabQueueComponent, canActivate: [authGuard, permissionGuard('Laboratory.Read')] },
   { path: 'inventory', component: InventoryComponent, canActivate: [authGuard, permissionGuard('Inventory.Read')] },
   { path: 'billing', component: BillingComponent, canActivate: [authGuard, permissionGuard('Billing.Read')] },
+  { path: 'admin', component: AdminComponent, canActivate: [authGuard, permissionGuard('Administration.ManageUsers')] },
   { path: '**', redirectTo: 'dashboard' }
 ];

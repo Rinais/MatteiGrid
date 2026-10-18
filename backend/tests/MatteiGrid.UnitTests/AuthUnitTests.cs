@@ -228,4 +228,88 @@ public class AuthUnitTests
         var doctorPermissions = Permissions.RolePermissions[Roles.Doctor];
         doctorPermissions.Should().Contain(Permissions.InventoryRead);
     }
+
+    [Fact]
+    public async Task PermissionAuthorizationHandler_ShouldAllow_SuperAdmin_AdministrationManageUsers_WithoutBreakGlass()
+    {
+        // Arrange: SuperAdmin has platform management permissions (including Administration.ManageUsers) by default
+        var tenantContext = new CurrentTenantContext();
+        tenantContext.SetTenant(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Roles.SuperAdmin,
+            Permissions.RolePermissions[Roles.SuperAdmin],
+            isBreakGlass: false);
+
+        var handler = new PermissionAuthorizationHandler(tenantContext);
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.Role, Roles.SuperAdmin)
+        }, "Bearer"));
+
+        var requirement = new HasPermissionRequirement(Permissions.AdministrationManageUsers);
+        var authContext = new AuthorizationHandlerContext(new[] { requirement }, user, null);
+
+        // Act
+        await handler.HandleAsync(authContext);
+
+        // Assert
+        authContext.HasSucceeded.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task PermissionAuthorizationHandler_ShouldDeny_Doctor_AdministrationManageUsers()
+    {
+        // Arrange: Doctor does NOT have user administration or password reset permissions
+        var tenantContext = new CurrentTenantContext();
+        tenantContext.SetTenant(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Roles.Doctor,
+            Permissions.RolePermissions[Roles.Doctor],
+            isBreakGlass: false);
+
+        var handler = new PermissionAuthorizationHandler(tenantContext);
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.Role, Roles.Doctor)
+        }, "Bearer"));
+
+        var requirement = new HasPermissionRequirement(Permissions.AdministrationManageUsers);
+        var authContext = new AuthorizationHandlerContext(new[] { requirement }, user, null);
+
+        // Act
+        await handler.HandleAsync(authContext);
+
+        // Assert
+        authContext.HasSucceeded.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task PermissionAuthorizationHandler_ShouldAllow_Administrator_AdministrationManageUsers()
+    {
+        // Arrange: Clinic Administrator has Administration.ManageUsers permission
+        var tenantContext = new CurrentTenantContext();
+        tenantContext.SetTenant(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Roles.Administrator,
+            Permissions.RolePermissions[Roles.Administrator],
+            isBreakGlass: false);
+
+        var handler = new PermissionAuthorizationHandler(tenantContext);
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.Role, Roles.Administrator)
+        }, "Bearer"));
+
+        var requirement = new HasPermissionRequirement(Permissions.AdministrationManageUsers);
+        var authContext = new AuthorizationHandlerContext(new[] { requirement }, user, null);
+
+        // Act
+        await handler.HandleAsync(authContext);
+
+        // Assert
+        authContext.HasSucceeded.Should().BeTrue();
+    }
 }
