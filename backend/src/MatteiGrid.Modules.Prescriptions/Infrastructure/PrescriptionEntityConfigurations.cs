@@ -52,6 +52,8 @@ public class PrescriptionConfiguration : IEntityTypeConfiguration<Prescription>
         builder.HasIndex(p => new { p.ClinicId, p.Id }).IsUnique();
 
         builder.Property(p => p.Status).IsRequired().HasMaxLength(50);
+        builder.Property(p => p.DietAndRegimenInstructions).HasMaxLength(1000);
+        builder.Property(p => p.GeneralInstructions).HasMaxLength(1000);
 
         // ERD v4 Sec 1: UNIQUE(PreviousVersionId) WHERE PreviousVersionId IS NOT NULL (linear chain, no forks)
         builder.HasIndex(p => p.PreviousVersionId)
@@ -78,6 +80,9 @@ public class PrescriptionItemConfiguration : IEntityTypeConfiguration<Prescripti
         builder.Property(pi => pi.Quantity).HasPrecision(18, 2);
         builder.Property(pi => pi.Dosage).IsRequired().HasMaxLength(100);
         builder.Property(pi => pi.Duration).IsRequired().HasMaxLength(100);
+        builder.Property(pi => pi.SelectionMethod).IsRequired().HasMaxLength(50).HasDefaultValue(PrescriptionSelectionMethod.Repertorial);
+        builder.Property(pi => pi.Frequency).IsRequired().HasMaxLength(50).HasDefaultValue("TDS");
+        builder.Property(pi => pi.Instructions).HasMaxLength(500);
 
         // Composite Foreign Keys for defense-in-depth tenant isolation (ERD v4 Section 1 & 15.2)
         builder.HasOne(pi => pi.Prescription)

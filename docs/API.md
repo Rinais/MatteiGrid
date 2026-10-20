@@ -24,9 +24,12 @@ Authentication: JWT Bearer Token (`Authorization: Bearer <token>`) + HTTP-Only C
 |---|---|---|---|
 | `GET` | `/api/v1/patients?query={q}` | `Patients.Read` | Search patient records within the tenant clinic. Logs PHI read audit. |
 | `GET` | `/api/v1/patients/{id}` | `Patients.Read` | Fetch complete patient details by Guid. |
-| `POST` | `/api/v1/patients` | `Patients.Create` | Register a new patient. Checks duplicate phone/email warning. |
+| `POST` | `/api/v1/patients` | `Patients.Create` | Legacy/standard patient registration endpoint. |
+| `POST` | `/api/v1/patients/quick-intake` | `Patients.Create` | Tier 1 Quick Intake: low-friction registration capturing Name, Phone, DOB, Gender, Chief Complaint, and Consent (establishes initial 40% baseline). |
+| `GET` | `/api/v1/patients/{id}/detailed-profile` | `Patients.Read` | Retrieves complete patient demography, linked 7-section `HomeopathicCaseRecord`, and list of remaining `missingRequiredFields`. |
+| `PUT` | `/api/v1/patients/{id}/detailed-profile` | `Patients.Edit` | Tier 2 Case Dossier: Saves detailed homeopathic clinical record, recalculates dynamic completion score (0–100%), and transitions `ProfileStatus` ('Incomplete' vs 'Complete'). |
 | `POST` | `/api/v1/patients/{id}/archive` | `Patients.Archive` | Soft-archive patient record. |
-| `POST` | `/api/v1/patients/{id}/erase-pii` | `Patients.ErasePii` | Anonymize PII for DPDP Act 2023 compliance. Logs security event. |
+| `POST` | `/api/v1/patients/{id}/erase-pii` | `Patients.ErasePii` | Anonymize PII for DPDP Act 2023 compliance across patient profile and linked case dossier. Logs security event. |
 
 ---
 
@@ -44,9 +47,13 @@ Authentication: JWT Bearer Token (`Authorization: Bearer <token>`) + HTTP-Only C
 
 | Method | Endpoint | Permission Required | Description |
 |---|---|---|---|
-| `POST` | `/api/v1/consultations` | `Consultations.Create` | Start consultation from appointment. |
-| `GET` | `/api/v1/consultations/{id}` | `Consultations.Read` | Retrieve consultation record, notes, and vitals. |
+| `POST` | `/api/v1/consultations` | `Consultations.Create` | Start consultation from appointment or walk-in, optionally capturing `caseType` and `provisionalDiagnosis`. |
+| `GET` | `/api/v1/consultations/{id}` | `Consultations.Read` | Retrieve consultation record, notes, diagnoses, outcome, and clinical observations. |
+| `GET` | `/api/v1/consultations/patient/{patientId}` | `Consultations.Read` | Retrieve active (InProgress) or most recent consultation for a patient. |
+| `PUT` | `/api/v1/consultations/{id}/clinical-details` | `Consultations.Edit` | Update Organon case details: `caseType` (Acute, Chronic, etc.), `provisionalDiagnosis`, `finalDiagnosis`, and `outcome` (UnderTreatment, Cured, Relieved, etc.). |
 | `POST` | `/api/v1/consultations/{id}/notes`| `ClinicalNotes.Edit` | Add or update SOAP clinical note. |
+| `POST` | `/api/v1/consultations/{id}/observations` | `ClinicalNotes.Edit` | Record Organon §275–282 / Kent follow-up observation (`reactionType`, `kentsObservation`, `secondPrescriptionAction`, `notes`). |
+| `GET` | `/api/v1/consultations/{id}/observations` | `Consultations.Read` | Retrieve timeline of follow-up observations and remedy reactions for the consultation. |
 | `POST` | `/api/v1/consultations/{id}/complete`| `Consultations.Edit` | Complete consultation session. |
 
 ---
@@ -66,12 +73,12 @@ Authentication: JWT Bearer Token (`Authorization: Bearer <token>`) + HTTP-Only C
 | Method | Endpoint | Permission Required | Description |
 |---|---|---|---|
 | `GET` | `/api/v1/prescriptions/medicines` | `Prescriptions.Read` | List active medicines. |
-| `GET` | `/api/v1/prescriptions/dilutions` | `Prescriptions.Read` | List available dilutions (D1–D30, 200C, etc.). |
-| `GET` | `/api/v1/prescriptions/vehicles` | `Prescriptions.Read` | List vehicles (Distilled water, Globules, Alcohol drops, Syrup). |
-| `GET` | `/api/v1/prescriptions/{id}` | `Prescriptions.Read` | Get prescription details and items. |
+| `GET` | `/api/v1/prescriptions/dilutions` | `Prescriptions.Read` | List available dilutions (1X–6X, 30C, 200C, 1M). |
+| `GET` | `/api/v1/prescriptions/vehicles` | `Prescriptions.Read` | List vehicles (Distilled water, Sugar globules, Alcohol drops, Ointment, Compress). |
+| `GET` | `/api/v1/prescriptions/{id}` | `Prescriptions.Read` | Get prescription details, dietetic regimen instructions, and line items. |
 | `GET` | `/api/v1/prescriptions/consultation/{id}` | `Prescriptions.Read` | List prescriptions for consultation. |
-| `POST` | `/api/v1/prescriptions` | `Prescriptions.Create` | Create a draft prescription with remedy items. |
-| `POST` | `/api/v1/prescriptions/revise` | `Prescriptions.Edit` | Create a revised version of an existing prescription. |
+| `POST` | `/api/v1/prescriptions` | `Prescriptions.Create` | Create a draft prescription with line items specifying `selectionMethod` (Repertorial vs NonRepertorial), `dosage`, `frequency`, `instructions`, and overall `dietAndRegimenInstructions`. |
+| `POST` | `/api/v1/prescriptions/revise` | `Prescriptions.Edit` | Create a revised version of an existing prescription maintaining strict linear versioning. |
 | `POST` | `/api/v1/prescriptions/{id}/finalize` | `Prescriptions.Finalize` | Locks prescription, generates Laboratory Order, triggers LabHub alert, and generates draft Invoice. |
 
 ---

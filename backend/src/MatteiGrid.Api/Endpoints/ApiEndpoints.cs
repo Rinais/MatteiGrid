@@ -133,6 +133,37 @@ public static class ApiEndpoints
             return Results.Created($"/api/v1/patients/{patient.Id}", new { patient, warning });
         }).RequirePermission(Permissions.PatientsCreate);
 
+        patients.MapPost("/quick-intake", async (RegisterPatientRequest req, IPatientService service) =>
+        {
+            var (patient, warning) = await service.RegisterPatientAsync(req);
+            return Results.Created($"/api/v1/patients/{patient.Id}", new { patient, warning });
+        }).RequirePermission(Permissions.PatientsCreate);
+
+        patients.MapGet("/{id:guid}/detailed-profile", async (Guid id, IPatientService service, IAuditService audit) =>
+        {
+            var profile = await service.GetDetailedProfileAsync(id);
+            if (profile is not null)
+            {
+                await audit.LogSecurityEventAsync(AuditEventTypes.PhiRead, "ViewDetailedPatientProfile", "Patient", id);
+            }
+            return profile is null ? Results.NotFound() : Results.Ok(profile);
+        }).RequirePermission(Permissions.PatientsRead);
+
+        patients.MapPut("/{id:guid}/detailed-profile", async (Guid id, UpdateHomeopathicCaseRecordRequest req, IPatientService service, IAuditService audit) =>
+        {
+            var updated = await service.UpdateDetailedProfileAsync(id, req);
+            if (updated is not null)
+            {
+                await audit.LogSecurityEventAsync(
+                    AuditEventTypes.PhiWrite,
+                    "UpdateDetailedPatientProfile",
+                    "HomeopathicCaseRecord",
+                    id,
+                    $"Updated homeopathic case record. New completion score: {updated.Summary.CompletionPercentage}%, Status: {updated.Summary.ProfileStatus}");
+            }
+            return updated is null ? Results.NotFound() : Results.Ok(updated);
+        }).RequirePermission(Permissions.PatientsEdit);
+
         patients.MapPost("/{id:guid}/archive", async (Guid id, IPatientService service) =>
         {
             var success = await service.ArchivePatientAsync(id);
@@ -191,6 +222,34 @@ public static class ApiEndpoints
                 await audit.LogSecurityEventAsync(AuditEventTypes.PhiConsultationAccess, "ViewConsultation", "Consultation", id);
             }
             return c is null ? Results.NotFound() : Results.Ok(c);
+        }).RequirePermission(Permissions.ConsultationsRead);
+
+        clinical.MapGet("/patient/{patientId:guid}", async (Guid patientId, IClinicalService service, IAuditService audit) =>
+        {
+            var c = await service.GetActiveOrLatestConsultationForPatientAsync(patientId);
+            if (c is not null)
+            {
+                await audit.LogSecurityEventAsync(AuditEventTypes.PhiConsultationAccess, "ViewPatientConsultation", "Consultation", c.Id);
+            }
+            return c is null ? Results.NotFound() : Results.Ok(c);
+        }).RequirePermission(Permissions.ConsultationsRead);
+
+        clinical.MapPut("/{id:guid}/clinical-details", async (Guid id, UpdateConsultationClinicalDetailsRequest req, IClinicalService service) =>
+        {
+            var updated = await service.UpdateClinicalDetailsAsync(id, req);
+            return updated is null ? Results.NotFound() : Results.Ok(updated);
+        }).RequirePermission(Permissions.ConsultationsEdit);
+
+        clinical.MapPost("/{id:guid}/observations", async (Guid id, AddConsultationObservationRequest req, IClinicalService service) =>
+        {
+            var obs = await service.AddObservationAsync(id, req);
+            return Results.Created($"/api/v1/consultations/{id}/observations/{obs.Id}", obs);
+        }).RequirePermission(Permissions.ClinicalNotesEdit);
+
+        clinical.MapGet("/{id:guid}/observations", async (Guid id, IClinicalService service) =>
+        {
+            var list = await service.GetObservationsAsync(id);
+            return Results.Ok(list);
         }).RequirePermission(Permissions.ConsultationsRead);
 
         clinical.MapPost("/{id:guid}/notes", async (Guid id, AddClinicalNoteRequest req, IClinicalService service) =>

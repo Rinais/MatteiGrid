@@ -29,9 +29,168 @@ export interface Patient {
   name: string;
   phone: string;
   dob: string;
+  gender?: string;
+  primaryChiefComplaint?: string;
+  profileStatus: 'Incomplete' | 'Complete' | string;
+  completionPercentage: number;
+  missingRequiredFields?: string[];
   isArchived: boolean;
   isAnonymized: boolean;
   createdAt: string;
+}
+
+export interface HomeopathicCaseRecord {
+  id: string;
+  patientId: string;
+  clinicId: string;
+  occupation?: string;
+  maritalStatus?: string;
+  address?: string;
+  diet?: string;
+  placeOfBirth?: string;
+  religion?: string;
+  education?: string;
+  socialStatus?: string;
+  nutritionalStatus?: string;
+  familyStatus?: string;
+  // Presenting Complaints & Modalities
+  chiefComplaintTimeline?: string;
+  location?: string;
+  locationSensation?: string;
+  sensationAndPathology?: string;
+  aggravatingModalities?: string;
+  amelioratingModalities?: string;
+  ailmentsFrom?: string;
+  concomitantSymptoms?: string;
+  // Physical Generals: Thermals
+  thermals?: string;
+  thermalTolerance?: string;
+  // Physical Generals: Functional
+  appetite?: string;
+  thirst?: string;
+  sex?: string;
+  sleep?: string;
+  sleepPattern?: string;
+  dreams?: string;
+  cravingsAversions?: string;
+  // Physical Generals: Elimination
+  stool?: string;
+  urine?: string;
+  sweat?: string;
+  breath?: string;
+  discharges?: string;
+  eliminationBowelUrinePerspiration?: string;
+  // Mental Generals
+  willAndEmotions?: string;
+  understandingAndIntellect?: string;
+  memory?: string;
+  intellectAndMemory?: string;
+  mindDisposition?: string;
+  emotionalTriggers?: string;
+  temperament?: string;
+  // Medical History
+  pastMedicalSurgicalHistory?: string;
+  familyMedicalHistory?: string;
+  childhoodDiseasesVaccination?: string;
+  // General Examination & Vitals
+  consciousState?: string;
+  generalAppearance?: string;
+  buildAndAppearance?: string;
+  builtAndNutrition?: string;
+  systemicSigns?: string;
+  skinAndNails?: string;
+  bloodPressure?: string;
+  pulseRate?: string;
+  temperatureF?: number;
+  respiratoryRate?: string;
+  weightKg?: number;
+  heightCm?: number;
+  bmi?: number;
+  systemicExamNotes?: string;
+  // Allergies
+  knownAllergies?: string;
+  hasKnownAllergies?: boolean;
+  allergyAssessmentConfirmed?: boolean;
+  isCompleted: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface PatientDetailedProfile {
+  patient: Patient;
+  caseRecord?: HomeopathicCaseRecord;
+  missingRequiredFields: string[];
+}
+
+export interface UpdateHomeopathicCaseRecordRequest {
+  occupation?: string;
+  maritalStatus?: string;
+  address?: string;
+  diet?: string;
+  placeOfBirth?: string;
+  religion?: string;
+  education?: string;
+  socialStatus?: string;
+  nutritionalStatus?: string;
+  familyStatus?: string;
+  // Presenting Complaints & Modalities
+  chiefComplaintTimeline?: string;
+  location?: string;
+  locationSensation?: string;
+  sensationAndPathology?: string;
+  aggravatingModalities?: string;
+  amelioratingModalities?: string;
+  ailmentsFrom?: string;
+  concomitantSymptoms?: string;
+  // Physical Generals: Thermals
+  thermals?: string;
+  thermalTolerance?: string;
+  // Physical Generals: Functional
+  appetite?: string;
+  thirst?: string;
+  sex?: string;
+  sleep?: string;
+  sleepPattern?: string;
+  dreams?: string;
+  cravingsAversions?: string;
+  // Physical Generals: Elimination
+  stool?: string;
+  urine?: string;
+  sweat?: string;
+  breath?: string;
+  discharges?: string;
+  eliminationBowelUrinePerspiration?: string;
+  // Mental Generals
+  willAndEmotions?: string;
+  understandingAndIntellect?: string;
+  memory?: string;
+  intellectAndMemory?: string;
+  mindDisposition?: string;
+  emotionalTriggers?: string;
+  temperament?: string;
+  // Medical History
+  pastMedicalSurgicalHistory?: string;
+  familyMedicalHistory?: string;
+  childhoodDiseasesVaccination?: string;
+  // General Examination & Vitals
+  consciousState?: string;
+  generalAppearance?: string;
+  buildAndAppearance?: string;
+  builtAndNutrition?: string;
+  systemicSigns?: string;
+  skinAndNails?: string;
+  bloodPressure?: string;
+  pulseRate?: string;
+  temperatureF?: number;
+  respiratoryRate?: string;
+  weightKg?: number;
+  heightCm?: number;
+  bmi?: number;
+  systemicExamNotes?: string;
+  // Allergies
+  knownAllergies?: string;
+  hasKnownAllergies?: boolean;
+  allergyAssessmentConfirmed?: boolean;
 }
 
 export interface DuplicatePatientWarning {
@@ -61,6 +220,18 @@ export interface ClinicalNote {
   updatedAt?: string;
 }
 
+export interface ConsultationObservation {
+  id: string;
+  consultationId: string;
+  staffId: string;
+  observationDate: string;
+  reactionType: string;
+  kentsObservation?: string;
+  secondPrescriptionAction?: string;
+  notes: string;
+  createdAt: string;
+}
+
 export interface Consultation {
   id: string;
   clinicId: string;
@@ -68,9 +239,14 @@ export interface Consultation {
   doctorStaffId: string;
   appointmentId?: string;
   status: string;
+  caseType: string;
+  provisionalDiagnosis: string;
+  finalDiagnosis: string;
+  outcome: string;
   startedAt: string;
   completedAt?: string;
   notes: ClinicalNote[];
+  observations: ConsultationObservation[];
 }
 
 export interface MateriaMedicaEntry {
@@ -95,6 +271,9 @@ export interface PrescriptionItem {
   quantity: number;
   dosage: string;
   duration: string;
+  selectionMethod?: 'Repertorial' | 'NonRepertorial' | string;
+  frequency?: string;
+  instructions?: string;
 }
 
 export interface Prescription {
@@ -107,6 +286,8 @@ export interface Prescription {
   finalizedByStaffId?: string;
   createdAt: string;
   finalizedAt?: string;
+  dietAndRegimenInstructions?: string;
+  generalInstructions?: string;
   items: PrescriptionItem[];
 }
 

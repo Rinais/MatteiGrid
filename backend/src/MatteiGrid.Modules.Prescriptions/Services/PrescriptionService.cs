@@ -31,7 +31,9 @@ public class PrescriptionService : IPrescriptionService
             ClinicId = _tenantContext.ClinicId ?? Guid.Empty,
             ConsultationId = request.ConsultationId,
             Version = 1,
-            Status = PrescriptionStatus.Draft
+            Status = PrescriptionStatus.Draft,
+            DietAndRegimenInstructions = request.DietAndRegimenInstructions,
+            GeneralInstructions = request.GeneralInstructions
         };
 
         foreach (var itemReq in request.Items)
@@ -47,7 +49,10 @@ public class PrescriptionService : IPrescriptionService
                 ElectricityPolarity = itemReq.ElectricityPolarity,
                 Quantity = itemReq.Quantity,
                 Dosage = itemReq.Dosage,
-                Duration = itemReq.Duration
+                Duration = itemReq.Duration,
+                SelectionMethod = !string.IsNullOrWhiteSpace(itemReq.SelectionMethod) ? itemReq.SelectionMethod : PrescriptionSelectionMethod.Repertorial,
+                Frequency = !string.IsNullOrWhiteSpace(itemReq.Frequency) ? itemReq.Frequency : "TDS",
+                Instructions = itemReq.Instructions ?? string.Empty
             });
         }
 
@@ -94,7 +99,9 @@ public class PrescriptionService : IPrescriptionService
             ConsultationId = prev.ConsultationId,
             PreviousVersionId = prev.Id,
             Version = prev.Version + 1,
-            Status = PrescriptionStatus.Draft
+            Status = PrescriptionStatus.Draft,
+            DietAndRegimenInstructions = request.DietAndRegimenInstructions ?? prev.DietAndRegimenInstructions,
+            GeneralInstructions = request.GeneralInstructions ?? prev.GeneralInstructions
         };
 
         foreach (var itemReq in request.Items)
@@ -110,7 +117,10 @@ public class PrescriptionService : IPrescriptionService
                 ElectricityPolarity = itemReq.ElectricityPolarity,
                 Quantity = itemReq.Quantity,
                 Dosage = itemReq.Dosage,
-                Duration = itemReq.Duration
+                Duration = itemReq.Duration,
+                SelectionMethod = !string.IsNullOrWhiteSpace(itemReq.SelectionMethod) ? itemReq.SelectionMethod : PrescriptionSelectionMethod.Repertorial,
+                Frequency = !string.IsNullOrWhiteSpace(itemReq.Frequency) ? itemReq.Frequency : "TDS",
+                Instructions = itemReq.Instructions ?? string.Empty
             });
         }
 
@@ -191,6 +201,8 @@ public class PrescriptionService : IPrescriptionService
             p.FinalizedByStaffId,
             p.CreatedAt,
             p.FinalizedAt,
+            p.DietAndRegimenInstructions,
+            p.GeneralInstructions,
             p.Items.Select(i => new PrescriptionItemDto(
                 i.Id,
                 i.MedicineId,
@@ -202,7 +214,10 @@ public class PrescriptionService : IPrescriptionService
                 i.ElectricityPolarity,
                 i.Quantity,
                 i.Dosage,
-                i.Duration
+                i.Duration,
+                i.SelectionMethod,
+                i.Frequency,
+                i.Instructions
             )).ToList()
         );
 }

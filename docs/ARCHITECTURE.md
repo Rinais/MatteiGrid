@@ -42,10 +42,10 @@ The backend is organized as a **Modular Monolith** using Clean Architecture boun
 - **`src/MatteiGrid.Modules.<Module>/`**: Bounded contexts:
   - `Identity`: Users, staff, credentials, refresh tokens, role & permission assignments.
   - `Clinic`: Tenant clinic profiles, settings, policies.
-  - `Patients`: Patient records, emergency contacts, medical history.
+  - `Patients`: Progressive profiling (Tier 1 Quick Intake vs Tier 2 Detailed Homeopathic Case Record dossier), dynamic profile completion tracking (0–100%), Organon totality modeling, and DPDP Act 2023 right-to-erasure anonymization.
   - `Appointments`: Scheduling, queue status, doctor assignment.
-  - `Clinical`: Consultations, clinical notes, diagnosis, vitals.
-  - `Prescriptions`: Digital prescription authoring, remedy dilution & vehicle formulation.
+  - `Clinical`: Consultations, SOAP clinical notes, Organon clinical evaluation (Case types, provisional/final diagnoses, outcome tracking), and structured follow-up reaction logging (Kent's 12 observations and second prescription planning).
+  - `Prescriptions`: Digital prescription authoring adhering to Organon Page 6 & Electro-Homoeopathy (repertorial vs non-repertorial selection method tagging, remedy family classification, polarity/electricities, dilutions, vehicles, dosing frequency, and diet & regimen restrictions).
   - `MateriaMedica`: Digital electro-homoeopathy remedy database, indications, organ affinities.
   - `Laboratory`: Preparation queue, order tracking, batch compounding, lab technician updates.
   - `Inventory`: Medicine stock levels, batch tracking, automatic deduction upon compounding.
@@ -92,8 +92,8 @@ frontend/src/app/
 └── features/              # Feature domain modules
     ├── auth/              # Login, tenant selection, demo profiles
     ├── dashboard/         # Role-tailored dashboard (Clinical vs Front-Desk vs Platform)
-    ├── patients/          # Patient directory & registration
-    ├── consultation/      # Consultation room & prescription builder
+    ├── patients/          # Patient directory, Quick Intake modal, and Homeopathic Case Dossier
+    ├── consultation/      # Consultation room, persistent dossier warning, & prescription builder
     ├── laboratory/        # Real-time laboratory preparation queue
     ├── inventory/         # Stock levels, items, batches
     ├── billing/           # Invoices, payment links, payment records

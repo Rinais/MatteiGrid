@@ -35,3 +35,36 @@ public class ConsentRecordConfiguration : IEntityTypeConfiguration<ConsentRecord
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+public class HomeopathicCaseRecordConfiguration : IEntityTypeConfiguration<HomeopathicCaseRecord>
+{
+    public void Configure(EntityTypeBuilder<HomeopathicCaseRecord> builder)
+    {
+        builder.ToTable("HomeopathicCaseRecords");
+        builder.HasKey(c => c.Id);
+
+        // Tenancy Model A: Composite unique constraints (ClinicId, Id) and (ClinicId, PatientId)
+        builder.HasIndex(c => new { c.ClinicId, c.Id }).IsUnique();
+        builder.HasIndex(c => new { c.ClinicId, c.PatientId }).IsUnique();
+
+        builder.Property(c => c.MaritalStatus).HasMaxLength(50);
+        builder.Property(c => c.Occupation).HasMaxLength(100);
+        builder.Property(c => c.Diet).HasMaxLength(50);
+        builder.Property(c => c.Address).HasMaxLength(500);
+        builder.Property(c => c.Email).HasMaxLength(150);
+        builder.Property(c => c.EmergencyContactName).HasMaxLength(150);
+        builder.Property(c => c.EmergencyContactPhone).HasMaxLength(20);
+        builder.Property(c => c.EmergencyContactRelation).HasMaxLength(50);
+        builder.Property(c => c.ReferredBy).HasMaxLength(150);
+        builder.Property(c => c.CaseType).HasMaxLength(50);
+
+        builder.Property(c => c.ThermalState).HasMaxLength(50);
+        builder.Property(c => c.BloodPressure).HasMaxLength(20);
+
+        builder.HasOne(c => c.Patient)
+            .WithOne(p => p.CaseRecord)
+            .HasForeignKey<HomeopathicCaseRecord>(c => c.PatientId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+

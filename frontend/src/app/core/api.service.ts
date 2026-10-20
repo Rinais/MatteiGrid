@@ -5,8 +5,12 @@ import { AuthService } from './auth.service';
 import {
   Patient,
   DuplicatePatientWarning,
+  HomeopathicCaseRecord,
+  PatientDetailedProfile,
+  UpdateHomeopathicCaseRecordRequest,
   Appointment,
   Consultation,
+  ConsultationObservation,
   ClinicalNote,
   MateriaMedicaEntry,
   Prescription,
@@ -28,9 +32,110 @@ export class ApiService {
 
   // In-memory mock data store for resilient local offline preview & fallback
   private mockPatients: Patient[] = [
-    { id: 'p1000000-0000-0000-0000-000000000001', clinicId: 'a0000000-0000-0000-0000-000000000001', name: 'Ramesh Kumar', phone: '+919845012345', dob: '1982-04-12', isArchived: false, isAnonymized: false, createdAt: new Date().toISOString() },
-    { id: 'p1000000-0000-0000-0000-000000000002', clinicId: 'a0000000-0000-0000-0000-000000000001', name: 'Sunita Patel', phone: '+919876543210', dob: '1990-11-28', isArchived: false, isAnonymized: false, createdAt: new Date().toISOString() }
+    {
+      id: 'p1000000-0000-0000-0000-000000000001',
+      clinicId: 'a0000000-0000-0000-0000-000000000001',
+      name: 'Ramesh Kumar',
+      phone: '+919845012345',
+      dob: '1982-04-12',
+      gender: 'Male',
+      primaryChiefComplaint: 'Chronic lymphatic congestion and seasonal bronchial irritation',
+      profileStatus: 'Incomplete',
+      completionPercentage: 40,
+      missingRequiredFields: [
+        'ChiefComplaintTimeline',
+        'PhysicalGenerals_Thermal',
+        'PhysicalGenerals_AppetiteThirst',
+        'PhysicalGenerals_Sleep',
+        'KnownAllergies'
+      ],
+      isArchived: false,
+      isAnonymized: false,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'p1000000-0000-0000-0000-000000000002',
+      clinicId: 'a0000000-0000-0000-0000-000000000001',
+      name: 'Sunita Patel',
+      phone: '+919876543210',
+      dob: '1990-11-28',
+      gender: 'Female',
+      primaryChiefComplaint: 'Recurrent migraines and digestive heaviness',
+      profileStatus: 'Complete',
+      completionPercentage: 100,
+      missingRequiredFields: [],
+      isArchived: false,
+      isAnonymized: false,
+      createdAt: new Date().toISOString()
+    }
   ];
+
+  private mockCaseRecords: Record<string, HomeopathicCaseRecord> = {
+    'p1000000-0000-0000-0000-000000000001': {
+      id: 'cr100000-0000-0000-0000-000000000001',
+      patientId: 'p1000000-0000-0000-0000-000000000001',
+      clinicId: 'a0000000-0000-0000-0000-000000000001',
+      occupation: 'Software Engineer',
+      maritalStatus: 'Married',
+      address: 'Bengaluru, India',
+      chiefComplaintTimeline: '',
+      thermals: '',
+      thermalTolerance: '',
+      appetite: '',
+      thirst: '',
+      sex: '',
+      sleep: '',
+      dreams: '',
+      stool: '',
+      urine: '',
+      sweat: '',
+      breath: '',
+      discharges: '',
+      hasKnownAllergies: false,
+      knownAllergies: '',
+      isCompleted: false,
+      createdAt: new Date().toISOString()
+    },
+    'p1000000-0000-0000-0000-000000000002': {
+      id: 'cr100000-0000-0000-0000-000000000002',
+      patientId: 'p1000000-0000-0000-0000-000000000002',
+      clinicId: 'a0000000-0000-0000-0000-000000000001',
+      occupation: 'Teacher',
+      maritalStatus: 'Married',
+      address: 'Mumbai, India',
+      diet: 'Veg',
+      chiefComplaintTimeline: 'Started 6 months ago with increased work stress; throbbing temporal pain',
+      locationSensation: 'Bilateral temporal region, bursting pressure sensation',
+      aggravatingModalities: 'Direct sunlight, noise, skipping meals',
+      amelioratingModalities: 'Cold compresses, lying in dark quiet room',
+      ailmentsFrom: 'Prolonged mental overexertion and grief',
+      thermals: 'Chilly, sensitive to cold drafts and air conditioning',
+      thermalTolerance: 'Chilly, sensitive to cold drafts and air conditioning',
+      appetite: 'Moderate appetite, feels faint if meal is delayed',
+      thirst: 'Thirst for warm sips at short intervals',
+      sex: 'Normal libido, headaches worse after coition',
+      sleep: 'Sleep disturbed before 2 AM; requires high pillow',
+      dreams: 'Anxious dreams of falling or uncompleted examinations',
+      cravingsAversions: 'Craves sweets and spicy warm foods; aversion to fatty meats',
+      stool: 'Regular, formed, no straining',
+      urine: 'Clear, pale yellow, normal flow',
+      sweat: 'Scanty generally; mild perspiration on forehead during pain',
+      breath: 'Normal, sweetish odor in the morning',
+      discharges: 'Mild watery post-nasal drip in winter',
+      willAndEmotions: 'Conscientious about trifles, easily moved to tears, anxious',
+      understandingAndIntellect: 'Sharp intellect, quick comprehension',
+      memory: 'Good long-term memory; slight recent forgetfulness under fatigue',
+      mindDisposition: 'Mild, weeping, fastidious',
+      hasKnownAllergies: false,
+      knownAllergies: 'None (Verified)',
+      bloodPressure: '120/80',
+      pulseRate: '72 bpm',
+      weightKg: 58,
+      heightCm: 162,
+      isCompleted: true,
+      createdAt: new Date().toISOString()
+    }
+  };
 
   private mockAppointments: Appointment[] = [
     { id: 'ap100000-0000-0000-0000-000000000001', clinicId: 'a0000000-0000-0000-0000-000000000001', patientId: 'p1000000-0000-0000-0000-000000000001', doctorStaffId: 'd1000000-0000-0000-0000-000000000001', startAt: new Date(Date.now() + 3600000).toISOString(), endAt: new Date(Date.now() + 5400000).toISOString(), status: 'Scheduled', createdAt: new Date().toISOString() }
@@ -42,8 +147,13 @@ export class ApiService {
     { id: 'm1000000-0000-0000-0000-000000000003', code: 'C1', name: 'Canceroso 1', family: 'Canceroso', description: 'Deep tissue cellular tonic. Specific for chronic cellular debility and degenerative changes.', indications: 'Chronic tissue degeneration, fibroids, stubborn indurations, ulcerations.' },
     { id: 'm1000000-0000-0000-0000-000000000004', code: 'F1', name: 'Febbrifugo 1', family: 'Febbrifugo', description: 'Nerve tonic and thermal balancer. Regulates neuro-vegetative nervous system.', indications: 'Intermittent fevers, neuralgia, nervous exhaustion, sympathetic tremors.' },
     { id: 'm1000000-0000-0000-0000-000000000005', code: 'P1', name: 'Pettorale 1', family: 'Pettorale', description: 'Respiratory soothing remedy. Tones bronchial mucosa and pulmonary tissues.', indications: 'Bronchial irritation, catarrh, dry irritating cough, chest congestion.' },
-    { id: 'm1000000-0000-0000-0000-000000000006', code: 'L1', name: 'Linfatico 1', family: 'Linfatico', description: 'Specific remedy for lymph glands, spleen, and fluid balance.', indications: 'Lymphatic stagnation, post-inflammatory oedema, glandular enlargement.' }
+    { id: 'm1000000-0000-0000-0000-000000000006', code: 'L1', name: 'Linfatico 1', family: 'Linfatico', description: 'Specific remedy for lymph glands, spleen, and fluid balance.', indications: 'Lymphatic stagnation, post-inflammatory oedema, glandular enlargement.' },
+    { id: 'm1000000-0000-0000-0000-000000000007', code: 'Ver1', name: 'Vermifugo 1', family: 'Vermifugo', description: 'Intestinal tonic and parasite neutralizer.', indications: 'Helminthiasis, abdominal distension, pinworms, nervous colic.' },
+    { id: 'm1000000-0000-0000-0000-000000000008', code: 'Ven1', name: 'Venereo 1', family: 'Venereo', description: 'Constitutional genito-urinary tonic. Clears chronic mucosal discharges.', indications: 'Urethral irritation, chronic leucorrhoea, pelvic inflammation.' },
+    { id: 'm1000000-0000-0000-0000-000000000009', code: 'Sy', name: 'Sinassio', family: 'Special', description: 'Synergistic constitutional equalizer. Unifies organic electro-potential.', indications: 'Refractory chronic disorders, erratic symptoms, neuralgic exhaustion.' }
   ];
+
+  private mockConsultations: Record<string, Consultation> = {};
 
   private mockLabOrders: LaboratoryOrder[] = [
     { id: 'lo100000-0000-0000-0000-000000000001', clinicId: 'a0000000-0000-0000-0000-000000000001', prescriptionId: 'rx100000-0000-0000-0000-000000000001', status: 'Received', createdAt: new Date().toISOString() },
@@ -119,23 +229,41 @@ export class ApiService {
     );
   }
 
-  registerPatient(req: { name: string; phone: string; dob: string; consentType?: string }): Observable<{ patient: Patient; warning: DuplicatePatientWarning }> {
-    return this.http.post<{ patient: Patient; warning: DuplicatePatientWarning }>(`${this.baseUrl}/patients`, req, { headers: this.getHeaders() })
+  quickIntake(req: { name: string; phone: string; dob: string; gender?: string; primaryChiefComplaint?: string; consentType?: string }): Observable<{ patient: Patient; warning: DuplicatePatientWarning }> {
+    return this.http.post<{ patient: Patient; warning: DuplicatePatientWarning }>(`${this.baseUrl}/patients/quick-intake`, req, { headers: this.getHeaders() })
       .pipe(
         catchError(() => {
-          // Check mock duplicate
           const dupes = this.mockPatients.filter(p => p.phone === req.phone || (p.dob === req.dob && p.name.toLowerCase() === req.name.toLowerCase()));
+          const newPatientId = `p-${Date.now()}`;
           const newPatient: Patient = {
-            id: `p-${Date.now()}`,
+            id: newPatientId,
             clinicId: this.auth.currentClinicId(),
             name: req.name,
             phone: req.phone,
             dob: req.dob,
+            gender: req.gender || 'Other',
+            primaryChiefComplaint: req.primaryChiefComplaint || '',
+            profileStatus: 'Incomplete',
+            completionPercentage: 40,
+            missingRequiredFields: [
+              'ChiefComplaintTimeline',
+              'PhysicalGenerals_Thermal',
+              'PhysicalGenerals_AppetiteThirst',
+              'PhysicalGenerals_Sleep',
+              'KnownAllergies'
+            ],
             isArchived: false,
             isAnonymized: false,
             createdAt: new Date().toISOString()
           };
           this.mockPatients.unshift(newPatient);
+          this.mockCaseRecords[newPatientId] = {
+            id: `cr-${Date.now()}`,
+            patientId: newPatientId,
+            clinicId: this.auth.currentClinicId(),
+            isCompleted: false,
+            createdAt: new Date().toISOString()
+          };
           return of({
             patient: newPatient,
             warning: {
@@ -143,6 +271,104 @@ export class ApiService {
               message: dupes.length > 0 ? `Advisory: ${dupes.length} potential matching patient(s) found with same phone or DOB.` : undefined,
               matches: dupes
             }
+          });
+        })
+      );
+  }
+
+  registerPatient(req: { name: string; phone: string; dob: string; gender?: string; primaryChiefComplaint?: string; consentType?: string }): Observable<{ patient: Patient; warning: DuplicatePatientWarning }> {
+    return this.quickIntake(req);
+  }
+
+  getDetailedProfile(patientId: string): Observable<PatientDetailedProfile> {
+    return this.http.get<PatientDetailedProfile>(`${this.baseUrl}/patients/${patientId}/detailed-profile`, { headers: this.getHeaders() })
+      .pipe(
+        catchError(() => {
+          const patient = this.mockPatients.find(p => p.id === patientId) || {
+            id: patientId,
+            clinicId: this.auth.currentClinicId(),
+            name: 'Unknown Patient',
+            phone: '0000000000',
+            dob: '1990-01-01',
+            profileStatus: 'Incomplete',
+            completionPercentage: 40,
+            missingRequiredFields: ['ChiefComplaintTimeline', 'PhysicalGenerals_Thermal', 'PhysicalGenerals_AppetiteThirst', 'PhysicalGenerals_Sleep', 'KnownAllergies'],
+            isArchived: false,
+            isAnonymized: false,
+            createdAt: new Date().toISOString()
+          };
+          let caseRecord = this.mockCaseRecords[patientId];
+          if (!caseRecord) {
+            caseRecord = {
+              id: `cr-${Date.now()}`,
+              patientId: patientId,
+              clinicId: this.auth.currentClinicId(),
+              isCompleted: false,
+              createdAt: new Date().toISOString()
+            };
+            this.mockCaseRecords[patientId] = caseRecord;
+          }
+          return of({
+            patient,
+            caseRecord,
+            missingRequiredFields: patient.missingRequiredFields || []
+          });
+        })
+      );
+  }
+
+  updateDetailedProfile(patientId: string, req: UpdateHomeopathicCaseRecordRequest): Observable<PatientDetailedProfile> {
+    return this.http.put<PatientDetailedProfile>(`${this.baseUrl}/patients/${patientId}/detailed-profile`, req, { headers: this.getHeaders() })
+      .pipe(
+        catchError(() => {
+          const patient = this.mockPatients.find(p => p.id === patientId);
+          let caseRecord = this.mockCaseRecords[patientId];
+          if (!caseRecord) {
+            caseRecord = {
+              id: `cr-${Date.now()}`,
+              patientId: patientId,
+              clinicId: this.auth.currentClinicId(),
+              isCompleted: false,
+              createdAt: new Date().toISOString()
+            };
+            this.mockCaseRecords[patientId] = caseRecord;
+          }
+
+          Object.assign(caseRecord, req, { updatedAt: new Date().toISOString() });
+
+          const missing: string[] = [];
+          if (!caseRecord.chiefComplaintTimeline?.trim()) missing.push('ChiefComplaintTimeline');
+          const missingThermals = !caseRecord.thermals?.trim() && !caseRecord.thermalTolerance?.trim();
+          if (missingThermals) missing.push('Thermals');
+          const missingFunctional = !caseRecord.appetite?.trim() && !caseRecord.thirst?.trim();
+          if (missingFunctional) missing.push('Functional_AppetiteThirst');
+          const missingSleep = !caseRecord.sleep?.trim() && !caseRecord.sleepPattern?.trim();
+          if (missingSleep) missing.push('Functional_Sleep');
+          const allergyAssessed = caseRecord.hasKnownAllergies === false ||
+            (caseRecord.hasKnownAllergies === true && !!caseRecord.knownAllergies?.trim());
+          if (!allergyAssessed) missing.push('KnownAllergies');
+
+          let score = 40;
+          if (caseRecord.chiefComplaintTimeline?.trim()) score += 12;
+          if (!missingThermals) score += 12;
+          if (!missingFunctional) score += 12;
+          if (!missingSleep) score += 12;
+          if (allergyAssessed) score += 12;
+          if (score > 100) score = 100;
+
+          const isComplete = missing.length === 0;
+          caseRecord.isCompleted = isComplete;
+
+          if (patient) {
+            patient.profileStatus = isComplete ? 'Complete' : 'Incomplete';
+            patient.completionPercentage = isComplete ? 100 : score;
+            patient.missingRequiredFields = missing;
+          }
+
+          return of({
+            patient: patient!,
+            caseRecord,
+            missingRequiredFields: missing
           });
         })
       );
@@ -204,6 +430,118 @@ export class ApiService {
         ));
       })
     );
+  }
+
+  // --- Consultations (Organon & Clinical) ---
+  getPatientConsultation(patientId: string): Observable<Consultation> {
+    return this.http.get<Consultation>(`${this.baseUrl}/consultations/patient/${patientId}`, { headers: this.getHeaders() })
+      .pipe(
+        catchError(() => {
+          let c = this.mockConsultations[patientId];
+          if (!c) {
+            c = {
+              id: `c-${Date.now()}`,
+              clinicId: this.auth.currentClinicId(),
+              patientId: patientId,
+              doctorStaffId: this.auth.currentUser()?.id || 'd1000000-0000-0000-0000-000000000001',
+              status: 'InProgress',
+              caseType: 'Chronic',
+              provisionalDiagnosis: 'Chronic lymphatic congestion with seasonal allergies',
+              finalDiagnosis: 'Lymphatic diathesis (Scrofulosis)',
+              outcome: 'UnderTreatment',
+              startedAt: new Date().toISOString(),
+              notes: [],
+              observations: [
+                {
+                  id: `obs-1`,
+                  consultationId: `c-${Date.now()}`,
+                  staffId: this.auth.currentUser()?.id || 'd1000000-0000-0000-0000-000000000001',
+                  observationDate: new Date(Date.now() - 7 * 86400000).toISOString(),
+                  reactionType: 'InitialEncounter',
+                  kentsObservation: 'Obs 1: Prolonged aggravation and then final decline',
+                  secondPrescriptionAction: 'Continue',
+                  notes: 'Initial evaluation: Marked bronchial sensitivity and nocturnal restlessness.',
+                  createdAt: new Date(Date.now() - 7 * 86400000).toISOString()
+                }
+              ]
+            };
+            this.mockConsultations[patientId] = c;
+          }
+          return of(c);
+        })
+      );
+  }
+
+  updateConsultationDetails(consultationId: string, req: { caseType: string; provisionalDiagnosis: string; finalDiagnosis: string; outcome: string }): Observable<Consultation> {
+    return this.http.put<Consultation>(`${this.baseUrl}/consultations/${consultationId}/clinical-details`, req, { headers: this.getHeaders() })
+      .pipe(
+        catchError(() => {
+          for (const key of Object.keys(this.mockConsultations)) {
+            if (this.mockConsultations[key].id === consultationId) {
+              Object.assign(this.mockConsultations[key], req);
+              return of(this.mockConsultations[key]);
+            }
+          }
+          const fallback: Consultation = {
+            id: consultationId,
+            clinicId: this.auth.currentClinicId(),
+            patientId: 'p1000000-0000-0000-0000-000000000001',
+            doctorStaffId: 'd1000000-0000-0000-0000-000000000001',
+            status: 'InProgress',
+            ...req,
+            startedAt: new Date().toISOString(),
+            notes: [],
+            observations: []
+          };
+          return of(fallback);
+        })
+      );
+  }
+
+  addConsultationObservation(consultationId: string, req: { reactionType: string; kentsObservation?: string; secondPrescriptionAction?: string; notes: string }): Observable<ConsultationObservation> {
+    return this.http.post<ConsultationObservation>(`${this.baseUrl}/consultations/${consultationId}/observations`, {
+      ...req,
+      staffId: this.auth.currentUser()?.id || 'd1000000-0000-0000-0000-000000000001'
+    }, { headers: this.getHeaders() })
+      .pipe(
+        catchError(() => {
+          const obs: ConsultationObservation = {
+            id: `obs-${Date.now()}`,
+            consultationId,
+            staffId: this.auth.currentUser()?.id || 'd1000000-0000-0000-0000-000000000001',
+            observationDate: new Date().toISOString(),
+            reactionType: req.reactionType,
+            kentsObservation: req.kentsObservation,
+            secondPrescriptionAction: req.secondPrescriptionAction,
+            notes: req.notes,
+            createdAt: new Date().toISOString()
+          };
+
+          for (const key of Object.keys(this.mockConsultations)) {
+            if (this.mockConsultations[key].id === consultationId) {
+              this.mockConsultations[key].observations = this.mockConsultations[key].observations || [];
+              this.mockConsultations[key].observations.unshift(obs);
+              break;
+            }
+          }
+
+          return of(obs);
+        })
+      );
+  }
+
+  getConsultationObservations(consultationId: string): Observable<ConsultationObservation[]> {
+    return this.http.get<ConsultationObservation[]>(`${this.baseUrl}/consultations/${consultationId}/observations`, { headers: this.getHeaders() })
+      .pipe(
+        catchError(() => {
+          for (const key of Object.keys(this.mockConsultations)) {
+            if (this.mockConsultations[key].id === consultationId) {
+              return of(this.mockConsultations[key].observations || []);
+            }
+          }
+          return of([]);
+        })
+      );
   }
 
   // --- Prescriptions & Lab ---

@@ -7,9 +7,15 @@ public class Patient : ClinicScopedEntity
     public string Name { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
     public DateOnly DOB { get; set; }
+    public string Gender { get; set; } = "Undisclosed"; // Male, Female, Other, Undisclosed
+    public string? PrimaryChiefComplaint { get; set; }
+    public string ProfileStatus { get; set; } = "Incomplete"; // Incomplete | Complete
+    public int CompletionPercentage { get; set; } = 35; // 0 - 100
+    public string MissingFieldsJson { get; set; } = "[]";
     public bool IsArchived { get; set; }
     public bool IsAnonymized { get; set; }
 
+    public HomeopathicCaseRecord? CaseRecord { get; set; }
     public ICollection<ConsentRecord> ConsentRecords { get; set; } = new List<ConsentRecord>();
 
     /// <summary>
@@ -21,8 +27,11 @@ public class Patient : ClinicScopedEntity
         Name = $"Anonymized-Patient-{Id.ToString("N")[..8]}";
         Phone = "0000000000";
         DOB = new DateOnly(1900, 1, 1);
+        Gender = "Undisclosed";
+        PrimaryChiefComplaint = null;
         IsAnonymized = true;
         UpdatedAt = DateTimeOffset.UtcNow;
+        CaseRecord?.Anonymize();
     }
 }
 

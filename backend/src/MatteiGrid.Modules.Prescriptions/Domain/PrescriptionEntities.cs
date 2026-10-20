@@ -39,6 +39,14 @@ public class Vehicle : ClinicScopedEntity
     public string Name { get; set; } = string.Empty;
 }
 
+public static class PrescriptionSelectionMethod
+{
+    public const string Repertorial = "Repertorial";
+    public const string NonRepertorial = "NonRepertorial";
+
+    public static readonly IReadOnlyList<string> All = new[] { Repertorial, NonRepertorial };
+}
+
 public class Prescription : IClinicScopedEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -50,6 +58,10 @@ public class Prescription : IClinicScopedEntity
     public Guid? FinalizedByStaffId { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? FinalizedAt { get; set; } // Immutable once finalized — no UpdatedAt per ERD v4
+
+    // Organon Case Sheet Page 6: Diet & Regimen instructions
+    public string? DietAndRegimenInstructions { get; set; }
+    public string? GeneralInstructions { get; set; }
 
     public Prescription? PreviousVersion { get; set; }
     public ICollection<PrescriptionItem> Items { get; set; } = new List<PrescriptionItem>();
@@ -67,6 +79,11 @@ public class PrescriptionItem : IClinicScopedEntity
     public decimal Quantity { get; set; }
     public string Dosage { get; set; } = string.Empty;
     public string Duration { get; set; } = string.Empty;
+
+    // Organon Page 6 & Clinical Prescription Grid Enhancements
+    public string SelectionMethod { get; set; } = PrescriptionSelectionMethod.Repertorial;
+    public string Frequency { get; set; } = "TDS";
+    public string Instructions { get; set; } = string.Empty;
 
     public Prescription? Prescription { get; set; }
     public Medicine? Medicine { get; set; }

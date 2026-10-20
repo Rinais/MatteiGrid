@@ -42,12 +42,15 @@ erDiagram
     PERMISSION ||--o{ ROLE_PERMISSION : granted_via
 
     PATIENT ||--o{ APPOINTMENT : books
+    PATIENT ||--o| HOMEOPATHIC_CASE_RECORD : has
     STAFF ||--o{ APPOINTMENT : assigned_as_doctor
     APPOINTMENT ||--o| CONSULTATION : leads_to
     PATIENT ||--o{ CONSULTATION : has
     STAFF ||--o{ CONSULTATION : conducts
     CONSULTATION ||--o{ CLINICAL_NOTE : contains
+    CONSULTATION ||--o{ CONSULTATION_OBSERVATION : records
     STAFF ||--o{ CLINICAL_NOTE : writes
+    STAFF ||--o{ CONSULTATION_OBSERVATION : observes
     CONSULTATION ||--o{ PRESCRIPTION : produces
 
     MATERIA_MEDICA_ENTRY ||--o{ PRESCRIPTION_ITEM : referenced_by
@@ -126,7 +129,72 @@ erDiagram
         string Name
         string Phone
         date DOB
+        string Gender "nullable"
+        string PrimaryChiefComplaint "nullable"
+        string ProfileStatus "Incomplete / Complete"
+        int CompletionPercentage "0 to 100"
+        text MissingFieldsJson "serialized missing mandatory fields"
         bool IsArchived
+        bool IsAnonymized
+        datetime CreatedAt
+        datetime UpdatedAt
+    }
+    HOMEOPATHIC_CASE_RECORD {
+        guid Id PK
+        guid ClinicId FK
+        guid PatientId FK, UK
+        string Occupation "nullable"
+        string MaritalStatus "nullable"
+        string Address "nullable"
+        string Diet "Veg / Non Veg / Mixed"
+        string PlaceOfBirth "nullable"
+        string Religion "nullable"
+        string Education "nullable"
+        string SocialStatus "nullable"
+        string NutritionalStatus "nullable"
+        string FamilyStatus "Nuclear / Joint / Extended"
+        text ChiefComplaintTimeline "nullable - mandatory for 100%"
+        string Location "nullable"
+        string SensationAndPathology "nullable"
+        text AggravatingModalities "nullable"
+        text AmelioratingModalities "nullable"
+        string AilmentsFrom "nullable"
+        string ConcomitantSymptoms "nullable"
+        string Thermals "nullable - mandatory for 100%"
+        text Appetite "nullable - mandatory for 100%"
+        text Thirst "nullable - mandatory for 100%"
+        text Sex "nullable"
+        text Sleep "nullable - mandatory for 100%"
+        text Dreams "nullable"
+        string CravingsAndAversions "nullable"
+        text Stool "nullable"
+        text Urine "nullable"
+        text Sweat "nullable"
+        text Breath "nullable"
+        text Discharges "nullable"
+        text WillAndEmotions "nullable"
+        text UnderstandingAndIntellect "nullable"
+        text Memory "nullable"
+        text Disposition "nullable"
+        string Temperament "nullable"
+        text PastIllnesses "nullable"
+        text FamilyHistory "nullable"
+        string ConsciousState "nullable"
+        string GeneralAppearance "nullable"
+        string BuiltAndNutrition "nullable"
+        string SystemicSigns "nullable"
+        string BloodPressure "nullable"
+        int PulseRate "nullable"
+        decimal TemperatureF "nullable"
+        int RespiratoryRate "nullable"
+        decimal HeightCm "nullable"
+        decimal WeightKg "nullable"
+        decimal BMI "nullable"
+        text KnownAllergies "nullable - mandatory for 100%"
+        bool HasKnownAllergies "nullable"
+        bool AllergyAssessmentConfirmed "mandatory for 100%"
+        bool IsMandatoryDossierComplete
+        int DossierCompletionPercentage
         datetime CreatedAt
         datetime UpdatedAt
     }
@@ -148,9 +216,25 @@ erDiagram
         guid PatientId FK
         guid DoctorStaffId FK
         guid AppointmentId FK "nullable — walk-ins"
-        string Status "PRD_DEPENDENT — values need confirmation"
+        string Status "Scheduled/InProgress/Completed/Cancelled/NoShow"
+        string CaseType "Acute/Chronic/Gynaecological/Surgical/Epidemic/Others"
+        string ProvisionalDiagnosis "nullable"
+        string FinalDiagnosis "nullable"
+        string Outcome "UnderTreatment/Cured/Relieved/Referred/Otherwise/Expired"
         datetime StartedAt
         datetime CompletedAt "nullable"
+    }
+    CONSULTATION_OBSERVATION {
+        guid Id PK
+        guid ClinicId FK
+        guid ConsultationId FK
+        guid StaffId FK
+        datetime ObservationDate
+        string ReactionType "InitialEncounter/Amelioration/HomoeopathicAggravation/DiseaseAggravation/NoChange/NewSymptoms"
+        string KentsObservation "nullable (Obs 1..12)"
+        string SecondPrescriptionAction "nullable (Continue/WaitAndWatch/ChangePotency/ChangeRemedy)"
+        text Notes
+        datetime CreatedAt
     }
     CLINICAL_NOTE {
         guid Id PK
@@ -211,6 +295,8 @@ erDiagram
         int Version
         string Status
         guid FinalizedByStaffId FK "nullable until finalized"
+        text DietAndRegimenInstructions "nullable — Organon §259-263"
+        text GeneralInstructions "nullable"
         datetime CreatedAt
         datetime FinalizedAt "nullable — no UpdatedAt: immutable once finalized"
     }
@@ -221,10 +307,13 @@ erDiagram
         guid MedicineId FK
         guid DilutionId FK "mandatory — Sec 5.6 sequential workflow"
         guid VehicleId FK "mandatory — Sec 5.6 sequential workflow"
+        string SelectionMethod "Repertorial / NonRepertorial"
         string ElectricityPolarity "red/blue/green/yellow/white — validated value, not a table"
         decimal Quantity
         string Dosage
+        string Frequency "OD/BD/TDS/QID/Hourly/SOS"
         string Duration
+        string Instructions "nullable"
     }
     LABORATORY_ORDER {
         guid Id PK

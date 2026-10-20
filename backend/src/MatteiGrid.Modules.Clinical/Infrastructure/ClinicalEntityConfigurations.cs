@@ -13,8 +13,32 @@ public class ConsultationConfiguration : IEntityTypeConfiguration<Consultation>
         builder.HasIndex(c => new { c.ClinicId, c.Id }).IsUnique();
 
         builder.Property(c => c.Status).IsRequired().HasMaxLength(50);
+        builder.Property(c => c.CaseType).IsRequired().HasMaxLength(50);
+        builder.Property(c => c.ProvisionalDiagnosis).HasMaxLength(500);
+        builder.Property(c => c.FinalDiagnosis).HasMaxLength(500);
+        builder.Property(c => c.Outcome).IsRequired().HasMaxLength(50);
         builder.HasIndex(c => new { c.ClinicId, c.PatientId });
         builder.HasIndex(c => new { c.ClinicId, c.DoctorStaffId });
+    }
+}
+
+public class ConsultationObservationConfiguration : IEntityTypeConfiguration<ConsultationObservation>
+{
+    public void Configure(EntityTypeBuilder<ConsultationObservation> builder)
+    {
+        builder.ToTable("ConsultationObservations");
+        builder.HasKey(o => o.Id);
+        builder.HasIndex(o => new { o.ClinicId, o.Id }).IsUnique();
+
+        builder.Property(o => o.ReactionType).IsRequired().HasMaxLength(100);
+        builder.Property(o => o.KentsObservation).HasMaxLength(200);
+        builder.Property(o => o.SecondPrescriptionAction).HasMaxLength(100);
+        builder.Property(o => o.Notes).IsRequired();
+
+        builder.HasOne(o => o.Consultation)
+            .WithMany(c => c.Observations)
+            .HasForeignKey(o => o.ConsultationId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
 

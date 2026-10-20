@@ -7,15 +7,22 @@ public record CreatePrescriptionItemRequest(
     string ElectricityPolarity,
     decimal Quantity,
     string Dosage,
-    string Duration);
+    string Duration,
+    string? SelectionMethod = null,
+    string? Frequency = null,
+    string? Instructions = null);
 
 public record CreatePrescriptionRequest(
     Guid ConsultationId,
-    IReadOnlyList<CreatePrescriptionItemRequest> Items);
+    IReadOnlyList<CreatePrescriptionItemRequest> Items,
+    string? DietAndRegimenInstructions = null,
+    string? GeneralInstructions = null);
 
 public record RevisePrescriptionRequest(
     Guid PreviousPrescriptionId,
-    IReadOnlyList<CreatePrescriptionItemRequest> Items);
+    IReadOnlyList<CreatePrescriptionItemRequest> Items,
+    string? DietAndRegimenInstructions = null,
+    string? GeneralInstructions = null);
 
 public record PrescriptionItemDto(
     Guid Id,
@@ -28,7 +35,10 @@ public record PrescriptionItemDto(
     string ElectricityPolarity,
     decimal Quantity,
     string Dosage,
-    string Duration);
+    string Duration,
+    string SelectionMethod,
+    string Frequency,
+    string Instructions);
 
 public record PrescriptionDto(
     Guid Id,
@@ -40,6 +50,8 @@ public record PrescriptionDto(
     Guid? FinalizedByStaffId,
     DateTimeOffset CreatedAt,
     DateTimeOffset? FinalizedAt,
+    string? DietAndRegimenInstructions,
+    string? GeneralInstructions,
     IReadOnlyList<PrescriptionItemDto> Items);
 
 public interface IPrescriptionService

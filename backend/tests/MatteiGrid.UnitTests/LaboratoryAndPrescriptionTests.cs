@@ -60,6 +60,73 @@ public class LaboratoryAndPrescriptionTests
     {
         Electricities.All.Should().Contain(polarity);
     }
+
+    [Fact]
+    public void PrescriptionItem_SelectionMethod_DefaultsToRepertorialAndAllowsNonRepertorial()
+    {
+        var item1 = new PrescriptionItem();
+        item1.SelectionMethod.Should().Be(PrescriptionSelectionMethod.Repertorial);
+        item1.Frequency.Should().Be("TDS");
+
+        var item2 = new PrescriptionItem
+        {
+            SelectionMethod = PrescriptionSelectionMethod.NonRepertorial,
+            Frequency = "Hourly",
+            Instructions = "Take with warm water"
+        };
+        item2.SelectionMethod.Should().Be(PrescriptionSelectionMethod.NonRepertorial);
+        item2.Frequency.Should().Be("Hourly");
+        item2.Instructions.Should().Be("Take with warm water");
+    }
+
+    [Fact]
+    public void Prescription_DietAndRegimenInstructions_SetsCorrectly()
+    {
+        var rx = new Prescription
+        {
+            DietAndRegimenInstructions = "Avoid coffee, raw onions, and camphor.",
+            GeneralInstructions = "Take 30 mins before meals on empty stomach."
+        };
+
+        rx.DietAndRegimenInstructions.Should().Contain("Avoid coffee");
+        rx.GeneralInstructions.Should().Contain("empty stomach");
+    }
+}
+
+public class OrganonConsultationTests
+{
+    [Fact]
+    public void Consultation_Defaults_And_Observation_SupportOrganonPage6()
+    {
+        var consultation = new MatteiGrid.Modules.Clinical.Domain.Consultation
+        {
+            PatientId = Guid.NewGuid(),
+            DoctorStaffId = Guid.NewGuid(),
+            CaseType = MatteiGrid.Modules.Clinical.Domain.CaseTypes.Acute,
+            ProvisionalDiagnosis = "Acute Bronchial Spasm",
+            FinalDiagnosis = "Asthmatic Bronchitis",
+            Outcome = MatteiGrid.Modules.Clinical.Domain.CaseOutcomes.Relieved
+        };
+
+        consultation.CaseType.Should().Be(MatteiGrid.Modules.Clinical.Domain.CaseTypes.Acute);
+        consultation.Outcome.Should().Be(MatteiGrid.Modules.Clinical.Domain.CaseOutcomes.Relieved);
+
+        var observation = new MatteiGrid.Modules.Clinical.Domain.ConsultationObservation
+        {
+            ConsultationId = consultation.Id,
+            StaffId = consultation.DoctorStaffId,
+            ReactionType = MatteiGrid.Modules.Clinical.Domain.ReactionTypes.Amelioration,
+            KentsObservation = "Obs 3: Aggravation quick, short, strong with rapid improvement",
+            SecondPrescriptionAction = MatteiGrid.Modules.Clinical.Domain.SecondPrescriptionActions.WaitAndWatch,
+            Notes = "Cough intensity reduced significantly. Sleeping better."
+        };
+
+        consultation.Observations.Add(observation);
+
+        consultation.Observations.Should().HaveCount(1);
+        consultation.Observations.First().ReactionType.Should().Be("Amelioration");
+        consultation.Observations.First().SecondPrescriptionAction.Should().Be("WaitAndWatch");
+    }
 }
 
 public class DpdpPatientTests

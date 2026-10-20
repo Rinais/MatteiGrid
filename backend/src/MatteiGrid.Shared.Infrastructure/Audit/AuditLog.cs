@@ -15,6 +15,7 @@ public static class AuditEventTypes
     public const string AuthLogout = "Auth.Logout";
     
     public const string PhiRead = "Phi.Read";
+    public const string PhiWrite = "Phi.Write";
     public const string PhiConsultationAccess = "Phi.ConsultationAccess";
     public const string PhiPrescriptionView = "Phi.PrescriptionView";
 
